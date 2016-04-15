@@ -23,10 +23,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var btn_Control: UIButton!
     @IBOutlet weak var btn_Stop: UIButton!
     
-    // Différent type d'écoute
+    // Différent type de séquence
     let Basic = AKOscillator()
     let FMOscillator = AKFMOscillator(waveform: AKTable(.Sine, size: 4096))
-    var Generator: AKOperationGenerator!
     
     // Variables concernant Basic
     var Freq = 30               // Fréquence
@@ -34,9 +33,9 @@ class ViewController: UIViewController {
     
     // Variables concernant FMOscillator
     var FreqFM = 24             // Fréquence
-    var AmpFM = 30
-    var FM_Carrier = 2          // Fréquence du transporteur (=Freq * FM_Carrier)
-    var FM_ModIndex = 5         // Modulation de l'amplitude (=Freq * FM_ModIndex)
+    var AmpFM = 30              // Amplitude
+    var FM_Carrier = 2          // Fréquence du transporteur (=FreqFM * FM_Carrier)
+    var FM_ModIndex = 5         // Modulation de l'amplitude (=FreqFM * FM_ModIndex)
     var FM_ModMulti = 0.3       // Modulation de la fréquence (=FM_ModIndex * FM_ModMulti)
     
     // Variables ne concernant pas diréctement les séquences
@@ -80,22 +79,20 @@ class ViewController: UIViewController {
     }
     
     // MARK: Contrôle du son
-    
     @IBAction func SoundControl(sender: AnyObject) {
-        // Lancement de la séquence selon la sélection
-        switch Selection {
-        case 1:
-            AudioKit.start()
-            
-            FMOscillator.start()
-        case 2:
-            AudioKit.start()
-            Generator.start()
-        default:
-            AudioKit.start()
-            
-            Basic.start()
-        }
+        // Mise à jour des paramêtres de la séquence Basic
+        Basic.frequency = Double(textfield_Freq.text!)!
+        Basic.amplitude = Double(textfield_Amp.text!)!
+        
+        // Mise à jour des paramêtres de la séquence FMOscillator
+        FMOscillator.baseFrequency = Double(textfield_FreqDual.text!)!
+        FMOscillator.amplitude = Double(textfield_AmpDual.text!)!
+        FMOscillator.carrierMultiplier = Double(textfield_Carrier.text!)!
+        FMOscillator.modulatingMultiplier = Double(textfield_ModMulti.text!)!
+        FMOscillator.modulationIndex = Double(textfield_ModIndex.text!)!
+        
+        // Lancement de la séquence
+        AudioPlay(Selection, Sequence1: FMOscillator, Sequence2: GeneratorPlayer(FMOscillator, Sequence2: Basic), Sequence3: Basic)
         
         // Désactive le bouton Play (btn_Control) et active le bouton Stop (btn_Stop)
         btn_Stop.enabled = true
@@ -104,63 +101,16 @@ class ViewController: UIViewController {
     
     @IBAction func SoundStop(sender: AnyObject) {
         // Arrêt de la séquence active
-        switch Selection {
-        case 1:
-            FMOscillator.stop()
-        case 2:
-            Generator.stop()
-        default:
-            Basic.stop()
-        }
+        AudioKit.stop()
         
+        // Désactive le bouton Stop et active le bouton Playß
         btn_Stop.enabled = false
         btn_Control.enabled = true
     }
     
-    // MARK: Modification des paramètres
-    
-    @IBAction func ChangeFreq(sender: AnyObject) {
-        // Modification de la fréquence
-        Basic.frequency = Double(textfield_Freq.text!)!
-    }
-    
-    @IBAction func ChangeAmp(sender: AnyObject) {
-        // Modification de l'amplitude
-        Basic.amplitude = Double(textfield_Amp.text!)!
-    }
-    
-    @IBAction func ChangeFreqDual(sender: AnyObject) {
-        // Modification de la fréquence
-        FMOscillator.baseFrequency = Double(textfield_FreqDual.text!)!
-    }
-    
-    @IBAction func ChangeAmpDual(sender: AnyObject) {
-        FMOscillator.amplitude = Double(textfield_AmpDual.text!)!
-    }
-    
-    @IBAction func ChangeCarrier(sender: AnyObject) {
-        // Modification du transporteur
-        FMOscillator.carrierMultiplier = Double(textfield_Carrier.text!)!
-    }
-    
-    @IBAction func ChangeModMulti(sender: AnyObject) {
-        // Modification de la modulation de la fréquence
-        FMOscillator.modulatingMultiplier = Double(textfield_ModMulti.text!)!
-    }
-    
-    @IBAction func ChangeModIndex(sender: AnyObject) {
-        // Modification de la modulation de l'amplitude
-        FMOscillator.modulationIndex = Double(textfield_ModIndex.text!)!
-    }
-    
     @IBAction func ChangeType(sender: AnyObject) {
-        // Arrète la séquence en cours d'exécution si nécessaire
-        if Basic.isStarted{
-            Basic.stop()
-        }
-        if FMOscillator.isStarted {
-            FMOscillator.stop()
-        }
+        // Arrète la séquence en cours d'exécution
+        AudioKit.stop()
         
         // Désactive le bouton Stop et active le bouton Play
         btn_Stop.enabled = false
@@ -171,34 +121,45 @@ class ViewController: UIViewController {
         case 0:
             Selection = 1
             label_Type.text = "FM"
-            
-            AudioKit.stop()
-            AudioKit.output = FMOscillator
         case 1:
             Selection = 2
             label_Type.text = "Dual"
-            
-            // Crée les deux séquences nécessaire
-            Generator = GeneratorBuilder(FMOscillator, Sequence2: Basic)
-            
-            AudioKit.stop()
-            AudioKit.output = Generator
         default:
             Selection = 0
             label_Type.text = "Basic"
-            
-            AudioKit.stop()
-            AudioKit.output = Basic
         }
     }
     //******************************************************************************//
 }
 
 // MARK: Fonctions
-public func GeneratorBuilder (Sequence1: AKFMOscillator, Sequence2: AKOscillator) -> AKOperationGenerator {
+public func GeneratorPlayer (Sequence1: AKFMOscillator, Sequence2: AKOscillator) -> AKOperationGenerator {
+    // Création des séquences qui seront superposée
     let SineWave1 = AKOperation.sineWave(frequency: Sequence1.baseFrequency, amplitude: Sequence1.amplitude)
     let SineWave2 = AKOperation.sineWave(frequency: Sequence2.frequency, amplitude: Sequence2.amplitude)
-
+    
+    // Retourne la séquence regroupant les deux précedente
     return AKOperationGenerator(left: SineWave1, right: SineWave2)
+}
+
+public func AudioPlay (Type: Int, Sequence1: AKFMOscillator?, Sequence2: AKOperationGenerator?, Sequence3: AKOscillator?) -> Void {
+    // Arrète la séquence en cours d'exécution
+    AudioKit.stop()
+    
+    // Lance la séquence selon le Type
+    switch Type {
+    case 1:
+        AudioKit.output = Sequence1
+        AudioKit.start()
+        Sequence1!.start()
+    case 2:
+        AudioKit.output = Sequence2
+        AudioKit.start()
+        Sequence2!.start()
+    default:
+        AudioKit.output = Sequence3
+        AudioKit.start()
+        Sequence3!.start()
+    }
 }
 
