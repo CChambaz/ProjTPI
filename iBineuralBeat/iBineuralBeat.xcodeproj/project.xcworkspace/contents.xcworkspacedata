@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:Test_Affichage.xcodeproj">
+      location = "self:iBineuralBeat.xcodeproj">
    </FileRef>
 </Workspace>

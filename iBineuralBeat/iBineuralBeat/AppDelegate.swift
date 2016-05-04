@@ -1,8 +1,8 @@
 //
 //  AppDelegate.swift
-//  Test_Affichage
+//  iBineuralBeat
 //
-//  Created by Cédric Chambaz on 18.04.16.
+//  Created by Cédric Chambaz on 28.04.16.
 //  Copyright © 2016 Cédric Chambaz. All rights reserved.
 //
 

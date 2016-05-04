@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10116" systemVersion="15E65" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="iBineuralBeat" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KG1-2A-DRt">
+                                <rect key="frame" x="20" y="20" width="141" height="37"/>
+                                <state key="normal" title="Concentration"/>
+                                <connections>
+                                    <action selector="selectCategorie1:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Eyh-W3-Xao"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fji-U4-YJ4">
+                                <rect key="frame" x="20" y="65" width="141" height="38"/>
+                                <state key="normal" title="Relaxation"/>
+                                <connections>
+                                    <action selector="selectCategorie2:" destination="BYZ-38-t0r" eventType="touchUpInside" id="HH5-D7-sTZ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j5e-TQ-9qC">
+                                <rect key="frame" x="20" y="111" width="141" height="38"/>
+                                <state key="normal" title="Autre"/>
+                                <connections>
+                                    <action selector="selectCategorie3:" destination="BYZ-38-t0r" eventType="touchUpInside" id="eKX-U5-R8G"/>
+                                </connections>
+                            </button>
+                            <pickerView contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="n3T-me-CRW">
+                                <rect key="frame" x="176" y="49" width="249" height="100"/>
+                            </pickerView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Durée :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iLH-fr-VXM">
+                                <rect key="frame" x="20" y="157" width="56" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="00" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="53H-xM-OLZ">
+                                <rect key="frame" x="84" y="154" width="33" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <action selector="checkCustomHoures:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="LLA-Yu-mZP"/>
+                                </connections>
+                            </textField>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="00" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Dpx-4Q-v8g">
+                                <rect key="frame" x="125" y="154" width="33" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <action selector="checkCustomMinutes:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="K3z-8K-4gy"/>
+                                </connections>
+                            </textField>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="00" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="H9P-zJ-Ila">
+                                <rect key="frame" x="166" y="154" width="33" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <action selector="checkCustomSeconds:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="Q1e-8A-HBC"/>
+                                </connections>
+                            </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Illimité :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ror-VI-FES">
+                                <rect key="frame" x="20" y="197" width="58" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kLP-5f-IBl">
+                                <rect key="frame" x="109" y="192" width="51" height="31"/>
+                                <connections>
+                                    <action selector="isDurationIllimited:" destination="BYZ-38-t0r" eventType="valueChanged" id="WgC-aS-Yot"/>
+                                </connections>
+                            </switch>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CUT-dp-aIy">
+                                <rect key="frame" x="252" y="154" width="71" height="30"/>
+                                <state key="normal" title="Play"/>
+                                <connections>
+                                    <action selector="controlSoundStatus:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Rgv-4w-e1W"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5mG-TF-jD4">
+                                <rect key="frame" x="252" y="193" width="71" height="30"/>
+                                <state key="normal" title="Stop"/>
+                                <connections>
+                                    <action selector="stopSound:" destination="BYZ-38-t0r" eventType="touchUpInside" id="M0a-MW-HuV"/>
+                                </connections>
+                            </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Search" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="oFg-bM-cf5">
+                                <rect key="frame" x="176" y="20" width="249" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <action selector="searchInActiveCategorie:" destination="BYZ-38-t0r" eventType="editingChanged" id="KTn-OH-ezZ"/>
+                                </connections>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="htv-4G-u44">
+                                <rect key="frame" x="385" y="154" width="40" height="40"/>
+                                <state key="normal" title="Paramètre" image="Settings"/>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <connections>
+                        <outlet property="btn_Categorie1" destination="KG1-2A-DRt" id="dpZ-uo-Xty"/>
+                        <outlet property="btn_Categorie2" destination="fji-U4-YJ4" id="ove-tD-Wy8"/>
+                        <outlet property="btn_Categorie3" destination="j5e-TQ-9qC" id="ijK-Cs-k82"/>
+                        <outlet property="btn_Settings" destination="htv-4G-u44" id="f7c-hP-lRz"/>
+                        <outlet property="btn_SoundControl" destination="CUT-dp-aIy" id="YBX-wT-CWM"/>
+                        <outlet property="btn_SoundStop" destination="5mG-TF-jD4" id="iBq-tF-POl"/>
+                        <outlet property="pv_Selection" destination="n3T-me-CRW" id="4Ki-iy-3E0"/>
+                        <outlet property="sw_Illimited" destination="kLP-5f-IBl" id="XNn-zf-yVd"/>
+                        <outlet property="tf_Houres" destination="53H-xM-OLZ" id="Wxz-Xz-OOe"/>
+                        <outlet property="tf_Minutes" destination="Dpx-4Q-v8g" id="8tO-5e-bdU"/>
+                        <outlet property="tf_Search" destination="oFg-bM-cf5" id="IOT-sn-Svd"/>
+                        <outlet property="tf_Seconds" destination="H9P-zJ-Ila" id="EPh-CO-Zyz"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="445" y="430"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="Settings" width="64" height="64"/>
+    </resources>
+</document>

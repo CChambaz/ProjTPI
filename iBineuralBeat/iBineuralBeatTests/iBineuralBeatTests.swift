@@ -1,15 +1,15 @@
 //
-//  Test_AffichageTests.swift
-//  Test_AffichageTests
+//  iBineuralBeatTests.swift
+//  iBineuralBeatTests
 //
-//  Created by Cédric Chambaz on 18.04.16.
+//  Created by Cédric Chambaz on 28.04.16.
 //  Copyright © 2016 Cédric Chambaz. All rights reserved.
 //
 
 import XCTest
-@testable import Test_Affichage
+@testable import iBineuralBeat
 
-class Test_AffichageTests: XCTestCase {
+class iBineuralBeatTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
