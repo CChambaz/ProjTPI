@@ -93,11 +93,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     
     // Met en pause ou lance la lecture
     @IBAction func controlSoundStatus(sender: AnyObject) {
-        let urlForStream = NSURL(string: getServerURL() + "StreamAudioFile.php?Audio/" + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")                 // Construction du chemin du pour accéder au fichier audio
-        
-        //let urlForStream = NSMutableURLRequest(URL: filePath!)                // Construction de l'url pour le streaming
-        
-        print(urlForStream!)
+        let urlForStream = NSURL(string: getServerURL() + "StreamAudioFile.php?filePath=Audio/" + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")                 // Construction de l'url pour lancer le streaming depuis la page PHP
         playerItem = AVPlayerItem(URL: urlForStream!)                                                  // Assigne le fichier à lire selon l'url précedente
         player=AVPlayer(playerItem: playerItem!)                                                       // Assigne le fichier à lire précedent au lecteur
         
