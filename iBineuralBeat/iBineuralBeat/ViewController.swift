@@ -9,13 +9,13 @@
 import UIKit
 import AVFoundation
 
-class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataSource {
+class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataSource, UINavigationControllerDelegate {
     // MARK: Propriétés
     @IBOutlet weak var btn_Categorie1: UIButton!            // Bouton de sélection pour la catégorie 1
     @IBOutlet weak var btn_Categorie2: UIButton!            // Bouton de sélection pour la catégorie 2
     @IBOutlet weak var btn_Categorie3: UIButton!            // Bouton de sélection pour la catégorie 3
-    @IBOutlet weak var btn_SoundControl: UIButton!          // Bouton permettant de lancer et mettre en pause la lecture audio
-    @IBOutlet weak var btn_SoundStop: UIButton!             // Bouton permettant d'arrêter la lecture audio
+    @IBOutlet weak var btn_SoundControl: UIButton!          // Bouton permettant de lancer ou mettre en pause la lecture audio
+    @IBOutlet weak var btn_StopSound: UIButton!             // Bouton permettant d'arrêter la lecture audio
     @IBOutlet weak var btn_Settings: UIButton!              // Bouton permettant d'accéder aux paramètres
     @IBOutlet weak var pv_Selection: UIPickerView!          // PickerView permettant de sélectionner la piste audio
     @IBOutlet weak var tf_Search: UITextField!              // Zone de texte permettant la recherche dans la PickerView
@@ -24,6 +24,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     @IBOutlet weak var tf_Seconds: UITextField!             // Zone de texte définissant le nombre de secondes de la piste audio
     @IBOutlet weak var sw_Illimited: UISwitch!              // Switch définissant si la piste audio doit sans contrainte de temps
     
+    let function = Function()                               // Constante regroupant les fonctions général
+    
+    var str_ConfigurationDatas = [String()]                 // Tableau contenant l'ensemble de la configuration
     var str_RecupDatas = [String()]                         // Tableau contenant l'ensemble des pistes audio
     var str_Categorie1Datas = [[String()]]                  // Tableau contenant l'ensemble des pistes audio de la catégorie 1
     var str_Categorie2Datas = [[String()]]                  // Tableau contenant l'ensemble des pistes audio de la catégorie 2
@@ -33,29 +36,44 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     var str_FileName = String()                             // Chaîne de caractère contenant le nom de la piste audio sélectionnée
     var int_ActiveCategorie = Int()                         // Nombre entier définissant la catégorie active
     var int_Duration = Int()                                // Nombre entier définissant la durée totale de la lecture
+    var int_Counter = Int()                                 // Nombre entier définissant la durée actuellement passé à lire une piste
+    var int_Categorie1Count = Int()                         // Nombre entier permettant la vérification des données de la catégorie 1
+    var int_Categorie2Count = Int()                         // Nombre entier permettant la vérification des données de la catégorie 2
+    var int_Categorie3Count = Int()                         // Nombre entier permettant la vérification des données de la catégorie 3
     var bool_IsSearching = Bool()                           // Booléen définissant si une recherche est en cours
+    var bool_IsPlaying = Bool()                             // Booléen définissant si une lecture est active
+    var bool_IsPause = Bool()                               // Booléen définissant si une lecture est en pause
+    var bool_IsFadeInActivated = Bool()                     // Booléen définissant si la fonction de Fade In doit être utilisée
+    var bool_IsFadeOutActivated = Bool()                    // Booléen définissant si la fonction de Fade Out doit être utilisée
     
     var playerItem:AVPlayerItem?                            // Variable définissant la piste à lire
     var player:AVPlayer?                                    // Lecteur utilisé pour lire la piste
+    var mainTimer:NSTimer?                                  // Timer utilisé pour lire la piste sur un temps défini
+    var fadeTimer:NSTimer?                                  // Timer utilisé pour effectué une action de fade in/out sur la piste en cours de lecture
     
     // MARK: Initialisation
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         // Assignation des valeurs de bases
+        str_ConfigurationDatas = function.getConfiguration().componentsSeparatedByString("\n")      // Récupère la configuration de l'application
+        
         int_ActiveCategorie = 1                             // Défini la catégorie 1 comme catégorie active
         bool_IsSearching = false                            // Indique qu'aucune recherche n'est en cours
-        
-        // Récupèration des données et les places dans le tableau str_RecupDatas
-        str_RecupDatas = getListOfAudioFiles()
-        
-        // Initialisation des tableaux des différentes catégories
-        updateCatTable()
+        bool_IsPause = false                                // Indique que le lecteur n'est pas en pause
+
+        updateGlobalConfiguration()                         // Initialisation des tableaux des différentes catégories
         
         // Préparation de l'affichage
         tf_Houres.enabled = false                           // Vérouille la zone de texte des heures
         tf_Minutes.enabled = false                          // Vérouille la zone de texte des minutes
         tf_Seconds.enabled = false                          // Vérouille la zone de texte des secondes
+
         pv_Selection.delegate = self                        // Initialise la Picker View
+        
+        setButtonFormat(btn_Categorie1)                     // Modifie le format du bouton de la catégorie 1
+        setButtonFormat(btn_Categorie2)                     // Modifie le format du bouton de la catégorie 2
+        setButtonFormat(btn_Categorie3)                     // Modifie le format du bouton de la catégorie 3
     }
 
     override func didReceiveMemoryWarning() {
@@ -83,7 +101,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
             str_FileName = str_ActiveCategorieDatas[row][0]
             return str_ActiveCategorieDatas[row][0]                                                                              // Retourne les séquences (uniquement le nom) de la catégorie active
         } else {                                                                                                                 // Dans le cas de recherche, elle est éffectuée ici selon la catégorie
-            updateTimesTextField(searchInTable(str_SearchResults, table_Data: str_ActiveCategorieDatas, exact_Value: str_SearchResults[row])!)   // Met à jour les zones de texts concernant les minutes et secondes
+            updateTimesTextField(function.searchInTable(str_SearchResults, table_Data: str_ActiveCategorieDatas, exact_Value: str_SearchResults[row])!)   // Met à jour les zones de texts concernant les minutes et secondes
             str_FileName = str_SearchResults[row]
             return str_SearchResults[row]                                                                                        // Retourne les résultats de la recherche
         }
@@ -91,17 +109,59 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     
     // MARK: Action
     
-    // Met en pause ou lance la lecture
-    @IBAction func controlSoundStatus(sender: AnyObject) {
-        let urlForStream = NSURL(string: getServerURL() + "StreamAudioFile.php?filePath=Audio/" + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")                 // Construction de l'url pour lancer le streaming depuis la page PHP
-        playerItem = AVPlayerItem(URL: urlForStream!)                                                  // Assigne le fichier à lire selon l'url précedente
-        player=AVPlayer(playerItem: playerItem!)                                                       // Assigne le fichier à lire précedent au lecteur
-        
-        player!.play()                                                                                 // Lancement de la lecture
+    // Lance la lecture
+    @IBAction func SoundControl(sender: AnyObject) {
+        if btn_SoundControl.currentImage == UIImage(named: "PlayButton") {                                     // Vérifie si la fonction demandée est la pause ou la lecture
+            if bool_IsPlaying == true {                                                                        // Vérifie si une lecture est déjà en cours
+                bool_IsPause = false                                                                           // Indique que la lecture à été reprise
+                player?.play()                                                                                 // Relance la lecture
+            } else {
+                let urlForStream = NSURL(string: str_ConfigurationDatas[0] + "StreamAudioFile.php?filePath=Audio/" + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")                 // Construction de l'url pour lancer le streaming depuis la page PHP
+                playerItem = AVPlayerItem(URL: urlForStream!)                                                  // Assigne le fichier à lire selon l'url précedente
+
+                player=AVPlayer(playerItem: playerItem!)                                                       // Assigne le fichier à lire précedent au lecteur
+                
+                if sw_Illimited.on == true {                                                                   // Dans le cas ou la lecture se fait sans limite de temps
+                    player?.actionAtItemEnd = .None                                                            // Défini qu'aucune action n'est menée à la fin de la lecture
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.loopPlayerItem), name: AVPlayerItemDidPlayToEndTimeNotification, object: self.player?.currentItem)            // Création de la notification qui va lancer la fonction pour répeter la lecture une fois terminée
+                } else {
+                    int_Duration = getCustomDuration()                                                      // Récupère la durée personnalisé
+                    int_Counter = 0                                                                         // Assigne la valeur de base au compteur
+                    mainTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.timerFunction), userInfo: nil, repeats: true)
+                    player?.actionAtItemEnd = .None                                                         // Défini qu'aucune action n'est menée à la fin de la lecture
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.loopPlayerItem), name: AVPlayerItemDidPlayToEndTimeNotification, object: self.player?.currentItem)        // Création de la notification qui va lancer la fonction pour répeter la lecture une fois terminée
+                }
+                
+                player!.play()                                                                                  // Lancement de la lecture
+
+                // Lance la fonction de Fade In si cette dernière est activée
+                if bool_IsFadeInActivated == true {
+                    player?.volume = 0                                                                          // Défini que le volume initial du lecteur est nul
+                    fadeTimer = NSTimer.scheduledTimerWithTimeInterval(0.29, target: self, selector: #selector(ViewController.fadeInFunction), userInfo: nil, repeats: true)
+                }
+                
+                bool_IsPlaying = true                                                                           // Indique qu'une lecture est en cours
+            }
+            btn_SoundControl.setImage(UIImage(named: "PauseButton"), forState: .Normal)                         // Modifie l'image du bouton SoundControl
+        } else {
+            player?.pause()                                                                                     // Met en pause la lecture
+            bool_IsPause = true                                                                                 // Indique que la lecture est en pause
+            btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)                          // Modifie l'image du bouton SoundControl
+        }
     }
     
     // Arrête la lecture
     @IBAction func stopSound(sender: AnyObject) {
+        if bool_IsFadeOutActivated == true && sw_Illimited.on == true {
+            fadeTimer = NSTimer.scheduledTimerWithTimeInterval(0.29, target: self, selector: #selector(ViewController.fadeOutFunction), userInfo: nil, repeats: true)   // Initialise le timer pour la fonction de Fade Out
+        } else {
+            player?.pause()                                                             // Arrète la lecture
+            bool_IsPlaying = false                                                      // Indique que la lecture est terminée
+            bool_IsPause = false                                                        // Indique que la lecture n'est pas en pause
+            mainTimer?.invalidate()                                                     // Arrete le timer principale
+            fadeTimer?.invalidate()                                                     // Arrete le timer secondaire
+            btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)  // Modifie l'image du bouton SoundControl
+        }
     }
     
     // Action effectuée lors du changement de valeur du PickerView
@@ -109,7 +169,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         if bool_IsSearching == false {                                                                                           // Vérifie qu'une recherche n'est pas en cours
             updateTimesTextField(str_ActiveCategorieDatas[row])                                                                  // Met à jour les textfields de temps selon la donnée sélectionnée
         } else {                                                                                                                 // Dans le cas de recherche
-            updateTimesTextField(searchInTable(str_SearchResults, table_Data: str_ActiveCategorieDatas, exact_Value: str_SearchResults[row])!)  // Met à jour les textfields de temps selon la donnée
+            updateTimesTextField(function.searchInTable(str_SearchResults, table_Data: str_ActiveCategorieDatas, exact_Value: str_SearchResults[row])!)  // Met à jour les textfields de temps selon la donnée
         }
     }
     
@@ -136,7 +196,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     
     // Défini si la lecture doit se faire de manière infini
     @IBAction func isDurationIllimited(sender: AnyObject) {
-        if sw_Illimited.on == true {        // Désactive les textfield de temps si la lecture est illimité
+        if sw_Illimited.on == true {        // Désactive les textfield de temps et indique que la lecture est illimité
             tf_Houres.enabled = false
             tf_Minutes.enabled = false
             tf_Seconds.enabled = false
@@ -147,9 +207,6 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         }
     }
     
-    /**********************************************************************************
-     Remarque : A voir pour la recherche selon le temps, comment faire avec les heures
-    **********************************************************************************/
     // Fonction s'occupant de la recherche dans la catégorie active
     @IBAction func searchInActiveCategorie(sender: AnyObject) {
         let str_SearchText = tf_Search.text                     // Récupère le critère de la recherche
@@ -178,7 +235,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
             }
         } else {
             for x in str_ActiveCategorieDatas {                                     // Parcours le tableau contenant les séquences de la catégorie active
-                if convertSecToHHMMSS(x)[1].containsString(str_SearchText!) {       // Converti la durée en minutes et dans le cas ou la durée est semblable
+                if String(Int(x[1])! / 60).containsString(str_SearchText!) {        // Converti la durée en minutes et dans le cas ou la durée est semblable
                     str_SearchResults.append(x[0])                                  // Ajoute le nom au tableau de la recherche
                 }
             }
@@ -187,117 +244,108 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         pv_Selection.reloadAllComponents()                      // Recharge le PickerView
     }
     
-    /**********************************************************************************
-     Remarque : Partie incertaine, pour le moment, aucun moyen de spécifier une durée,
-                se base uniquement à la durée du fichier
-     **********************************************************************************/
-    // Vérification des données entrées dans la zone de texte des heures
-    @IBAction func checkCustomHoures(sender: AnyObject) {
-        if Int(tf_Houres.text!) == nil {            // Vérifie si la valeurs rentrée correspond bien à un chiffre
-            tf_Houres.text = "00"                   // Remplace la valeur invalide par 00
-        } else {
-            if ((tf_Houres.text?.containsString("-")) != nil) {                                             // Vérifie que la valeur n'est pas négative
-                tf_Houres.text = tf_Houres.text?.stringByReplacingOccurrencesOfString("-", withString: "")  // Supprime le -
-            } else if ((tf_Houres.text?.containsString("+")) != nil) {                                      // Vérifie que la valeur ne possède pas de signe positif
-                tf_Houres.text = tf_Houres.text?.stringByReplacingOccurrencesOfString("+", withString: "")  // Supprime le +
-            }
-            
-            if Int(tf_Houres.text!) < 10 {                                                          // Vérifie que le nombre d'heures est inférieur à 10
-                tf_Houres.text = "0" + tf_Houres.text!                                              // Ajoute un 0 avant le nombre d'heures
-            }
+    // Vérification des zone de textes concernant la durée lors de la modification par l'utilisateur
+    @IBAction func checkCustomDuration(sender: AnyObject) {
+        // Déclaration des variables de temps et assigantion des valeurs correspondante
+        var int_Houres = function.checkTextBoxNumFormat(tf_Houres)
+        var int_Minutes = function.checkTextBoxNumFormat(tf_Minutes)
+        var int_Seconds = function.checkTextBoxNumFormat(tf_Seconds)
+        
+        // Traitement du nombre de secondes éxedentaire si nécessaire
+        if int_Seconds > 60 {
+            int_Minutes = int_Minutes + (int_Seconds / 60)          // Incrémente le nombre de minutes totale par le nombre de secondes éxedentaires
+            int_Seconds = int_Seconds % 60                          // Retourne le nombre réel de secondes
         }
+        
+        // Traitement du nombre de minutes éxedentaire si nécessaire
+        if int_Minutes > 60 {
+            int_Houres = int_Houres + (int_Minutes / 60)            // Incrémente le nombre d'heures par le nombre de minutes éxedentaires
+            int_Minutes = int_Minutes % 60                          // Retourne le nombre réel de minutes
+        }
+        
+        // Défini la valeur des zones de texts
+        tf_Houres.text = function.defineNumericValueFormat(int_Houres)
+        tf_Minutes.text = function.defineNumericValueFormat(int_Minutes)
+        tf_Seconds.text = function.defineNumericValueFormat(int_Seconds)
     }
     
-    // Vérification des données entrées dans la zone de texte des minutes
-    @IBAction func checkCustomMinutes(sender: AnyObject) {
-        if Int(tf_Minutes.text!) == nil {            // Vérifie si la valeurs rentrée correspond bien à un chiffre
-            tf_Minutes.text = "00"                   // Remplace la valeur invalide par 00
-        } else {
-            if ((tf_Minutes.text?.containsString("-")) != nil) {                                                // Vérifie que la valeur n'est pas négative
-                tf_Minutes.text = tf_Minutes.text?.stringByReplacingOccurrencesOfString("-", withString: "")    // Supprime le -
-            } else if ((tf_Houres.text?.containsString("+")) != nil) {                                          // Vérifie que la valeur ne possède pas de signe positif
-                tf_Minutes.text = tf_Minutes.text?.stringByReplacingOccurrencesOfString("+", withString: "")    // Supprime le +
-            }
-            
-            if Int(tf_Minutes.text!) >= 60 {                                                        // Vérifie que les minutes sont inférieur à une heure
-                tf_Houres.text = String(Int(tf_Houres.text!)! + (Int(tf_Minutes.text!)! / 60))      // Ajoute le nombre d'heures présentes dans le nombre de minutes à la zone de text des heures
-                tf_Minutes.text = String(Int(tf_Minutes.text!)! % 60)                               // Récupère et assigne la valeur correct des minutes
-                
-                if Int(tf_Houres.text!) < 10 {                                                      // Vérifie que le nombre d'heures est inférieur à 10
-                    tf_Houres.text = "0" + tf_Houres.text!                                          // Ajoute un 0 avant le nombre d'heures
-                }
-            }
-            
-            if Int(tf_Minutes.text!) < 10 {                                                         // Vérifie que le nombre de minutes est inférieur à 10
-                tf_Minutes.text = "0" + tf_Minutes.text!                                            // Ajoute un 0 avant le nombre de minutes
-            }
-        }
-    }
     
-    // Vérification des données entrées dans la zone de texte des secondes
-    @IBAction func checkCustomSeconds(sender: AnyObject) {
-        if Int(tf_Seconds.text!) == nil {
-            tf_Seconds.text = "00"
-        } else {
-            if ((tf_Seconds.text?.containsString("-")) != nil) {                                                // Vérifie que la valeur n'est pas négative
-                tf_Seconds.text = tf_Seconds.text?.stringByReplacingOccurrencesOfString("-", withString: "")    // Supprime le -
-            } else if ((tf_Seconds.text?.containsString("+")) != nil) {                                         // Vérifie que la valeur ne possède pas de signe positif
-                tf_Seconds.text = tf_Seconds.text?.stringByReplacingOccurrencesOfString("+", withString: "")    // Supprime le +
-            }
-            
-            if Int(tf_Seconds.text!) >= 60 {                                                        // Vérifie que les secondes sont inférieur à une minutes
-                tf_Minutes.text = String(Int(tf_Minutes.text!)! + (Int(tf_Seconds.text!)! / 60))    // Ajoute le nombre de minutes présentes dans le nombre de secondes à la zone de text des minutes
-                tf_Seconds.text = String(Int(tf_Seconds.text!)! % 60)                               // Récupère et assigne la valeur correct des minutes
-            }
-            
-            if Int(tf_Seconds.text!) < 10 {                                                         // Vérifie que le nombre de secondes est inférieur à 10
-                tf_Seconds.text = "0" + tf_Seconds.text!                                            // Ajoute un 0 avant le nombre de secondes
-            }
-            
-            if Int(tf_Minutes.text!) < 10 {                                                         // Vérifie que le nombre de minutes est inférieur à 10
-                tf_Minutes.text = "0" + tf_Minutes.text!                                            // Ajoute un 0 avant le nombre de minutes
-            } else if Int(tf_Minutes.text!) >= 60 {                                                 // Vérifie que les minutes sont inférieur à une heure
-                tf_Houres.text = String(Int(tf_Houres.text!)! + (Int(tf_Minutes.text!)! / 60))      // Ajoute le nombre d'heures présentes dans le nombre de minutes à la zone de text des heures
-                tf_Minutes.text = String(Int(tf_Minutes.text!)! % 60)                               // Récupère et assigne la valeur correct des minutes
-                
-                if Int(tf_Minutes.text!) < 10 {                                                     // Vérifie que le nombre de minutes est inférieur à 10
-                    tf_Minutes.text = "0" + tf_Minutes.text!                                        // Ajoute un 0 avant le nombre de minutes
-                }
-                
-                if Int(tf_Houres.text!) < 10 {                                                      // Vérifie que le nombre d'heures est inférieur à 10
-                    tf_Houres.text = "0" + tf_Houres.text!                                          // Ajoute un 0 avant le nombre d'heures
-                }
-            }
-        }
+    // MARK: Navigation
+    
+    // Action effectué lors de la transition d'une autre page à celle-ci
+    @IBAction func unwindToMainViewController(segue: UIStoryboardSegue) {
+        str_ConfigurationDatas = function.getConfiguration().componentsSeparatedByString("\n")      // Mise à jour de la configuration
+        
+        updateGlobalConfiguration()             // Met à jours les tableaux des catégories
+        
+        // Réinitialise les tableaux contenant les données des différentes catégories
+        str_Categorie1Datas = str_Categorie1Datas.reverse()
+        str_Categorie2Datas = str_Categorie2Datas.reverse()
+        str_Categorie3Datas = str_Categorie3Datas.reverse()
+        
+        pv_Selection.reloadAllComponents()      // Recharge les données du Picker View
     }
     
     // MARK: Fonction
     
     /***************************************************************/
-    /* Nom : UpdateCatTable                                        */
+    /* Nom : updateGlobalConfiguration                             */
     /***************************************************************/
     /* Paramètres : -                                              */
     /***************************************************************/
-    /* Description : Rempli les tableaux des différentes catégories*/
+    /* Description : Met à jour la configuration globale           */
     /***************************************************************/
     /* Retour : -                                                  */
     /***************************************************************/
-    func updateCatTable () {
+    func updateGlobalConfiguration () {
+        // Récupèration des données et les places dans le tableau str_RecupDatas
+        str_RecupDatas = function.getListOfAudioFiles(str_ConfigurationDatas[0])
+        
+        // Préparation des variables
+        int_Categorie1Count = 0
+        int_Categorie2Count = 0
+        int_Categorie3Count = 0
+        
         for x in str_RecupDatas {
             switch x.componentsSeparatedByString("-")[2] {                        // Défini dans quelle tableau les données seront entrées selon la catégorie
             case "2":
                 str_Categorie2Datas.append(x.componentsSeparatedByString("-"))    // Ajout des détails dans le tableau de la catégorie 2 correspondant
+                int_Categorie2Count += 1                                          // Incrémente la variable contenant la quantité de données insérées pour la catégorie 2
             case "3":
                 str_Categorie3Datas.append(x.componentsSeparatedByString("-"))    // Ajout des détails dans le tableau de la catégorie 3 correspondant
+                int_Categorie3Count += 1                                          // Incrémente la variable contenant la quantité de données insérées pour la catégorie 3
             default:
                 str_Categorie1Datas.append(x.componentsSeparatedByString("-"))    // Ajout des détails dans le tableau de la catégorie 1 correspondant
+                int_Categorie1Count += 1                                          // Incrémente la variable contenant la quantité de données insérées pour la catégorie 1
             }
         }
         
-        // Retire la première valeur de chaque tableau (nul)
-        str_Categorie1Datas.removeAtIndex(0)
-        str_Categorie2Datas.removeAtIndex(0)
-        str_Categorie3Datas.removeAtIndex(0)
+        // Vérifie que le bon nombre de donnée ont été rentrée
+        if str_RecupDatas.count < str_Categorie1Datas.count + str_Categorie2Datas.count + str_Categorie3Datas.count {
+            for _ in str_Categorie1Datas {                              // Parcours le tableau de la catégorie 1
+                if str_Categorie1Datas.count > int_Categorie1Count {    // Verifie que le nombre de données contenu est différent du nombre de données insérées
+                    str_Categorie1Datas.removeFirst()                   // Retire l'actuel valeur
+                } else {
+                    break                                               // Sort de la boucle
+                }
+            }
+            
+            for _ in str_Categorie2Datas {                              // Parcours le tableau de la catégorie 2
+                if str_Categorie2Datas.count > int_Categorie2Count {    // Verifie que le nombre de données contenu est différent du nombre de données insérées
+                    str_Categorie2Datas.removeFirst()                   // Retire l'actuel valeur
+                } else {
+                    break                                               // Sort de la boucle
+                }
+            }
+            
+            for _ in str_Categorie3Datas {                              // Parcours le tableau de la catégorie 3
+                if str_Categorie3Datas.count > int_Categorie3Count {    // Verifie que le nombre de données contenu est différent du nombre de données insérées
+                    str_Categorie3Datas.removeFirst()                   // Retire l'actuel valeur
+                } else {
+                    break                                               // Sort de la boucle
+                }
+            }
+        }
         
         // Initialise le tableau selon la catégorie active
         switch int_ActiveCategorie {
@@ -307,6 +355,20 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
             str_ActiveCategorieDatas = str_Categorie3Datas
         default:
             str_ActiveCategorieDatas = str_Categorie1Datas
+        }
+        
+        // Défini si la fonction de Fade In est activée
+        if str_ConfigurationDatas[1] == "true" {
+            bool_IsFadeInActivated = true
+        } else {
+            bool_IsFadeInActivated = false
+        }
+        
+        // Défini si la fonction de Fade Out est activée
+        if str_ConfigurationDatas[2] == "true" {
+            bool_IsFadeOutActivated = true
+        } else {
+            bool_IsFadeOutActivated = false
         }
     }
     
@@ -321,181 +383,141 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     /* Retour : -                                                  */
     /***************************************************************/
     func updateTimesTextField (table_Data: [String]) {
-        var detailTable = convertSecToHHMMSS(table_Data)  // Converti la durée en minutes et secondes
+        var detailTable = function.convertSecToHHMMSS(table_Data)   // Converti la durée en minutes et secondes
         
-        tf_Houres.text = detailTable[0]
-        tf_Minutes.text = detailTable[1]             // Met à jour la valeur contenu par la textfield des minutes
-        tf_Seconds.text = detailTable[2]             // Met à jour la valeur contenu par la textfield des secondes
+        tf_Houres.text = detailTable[0]                             // Met à jour la valeur contenu par la textfield des heures
+        tf_Minutes.text = detailTable[1]                            // Met à jour la valeur contenu par la textfield des minutes
+        tf_Seconds.text = detailTable[2]                            // Met à jour la valeur contenu par la textfield des secondes
     }
     
     /***************************************************************/
-    /* Nom : startStreaming                                        */
+    /* Nom : loopPlayerItem                                        */
     /***************************************************************/
-    /* Paramètres : filePath : Chemin du fichier audio à lire      */
+    /* Paramètres : -                                              */
     /***************************************************************/
-    /* Description : Lance le streaming de la piste désirée        */
+    /* Description : Relance la lecture                            */
     /***************************************************************/
-    /* Retour : Flux audio de la piste désirée                     */
+    /* Retour : -                                                  */
     /***************************************************************/
-    func startStreaming (filePath: String) {
-        let urlForStream = NSURL(fileURLWithPath: getServerURL() + "StreamAudioFile.php?" + filePath)   // Construction de l'url pour le streaming
-        
-        self.playerItem = AVPlayerItem(URL: urlForStream)                                                // Assigne le fichier à lire selon l'url précedente
-        self.player=AVPlayer(playerItem: self.playerItem!)                                               // Assigne le fichier à lire précedent au lecteur
-        
-        self.player!.play()                                                                              // Lancement de la lecture
+    func loopPlayerItem () {
+        let speceficTimeToGo = CMTime(seconds: 0.0, preferredTimescale: 1)         // Temps spécifique pour relancer la lecture
+        self.player?.seekToTime(speceficTimeToGo)                                  // Défini la position de lecture du lecteur selon le temps spécifique
+        self.player!.play()                                                        // Relance la lecture
     }
-}
-
-/***************************************************************/
-/* Nom : GetServerURL                                          */
-/***************************************************************/
-/* Paramètres : -                                              */
-/***************************************************************/
-/* Description : Récupère l'adresse du serveur utilisé dans le */
-/*               fichier iBBConfiguration.txt                  */
-/***************************************************************/
-/* Retour : NSURL                                              */
-/***************************************************************/
-public func getServerURL () -> String {
-    var Content = String()                                                                      // Variable contenant l'URL finale après traitement
     
-    let FilePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")     // Récupère le chemin du fichier de configuration
-    let FileContent = try? NSString(contentsOfFile: FilePath!, encoding: NSUTF8StringEncoding)  // Récupère le contenu du fichier de configuration
+    /***************************************************************/
+    /* Nom : playerItemDidReachEnd                                 */
+    /***************************************************************/
+    /* Paramètres : -                                              */
+    /***************************************************************/
+    /* Description : Indique que la lecture est terminée           */
+    /***************************************************************/
+    /* Retour : -                                                  */
+    /***************************************************************/
+    func playerItemDidReachEnd () {
+        bool_IsPlaying = false                                                      // Défini qu'aucune lecture n'est en cours
+        btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)  // Modifie l'image du bouton SoundControl
+    }
     
-    Content = FileContent!.stringByReplacingOccurrencesOfString("Optional(", withString: "")    // Retire le "Optional(" au début du contenu récupéré
-    Content = FileContent!.stringByReplacingOccurrencesOfString(")", withString: "")            // Retire le ")" à la fin du contenu récupéré
+    /***************************************************************/
+    /* Nom : setButtonFormat                                       */
+    /***************************************************************/
+    /* Paramètres : button : Bouton à mettre au format             */
+    /***************************************************************/
+    /* Description : Applique une bordure au bouton cible          */
+    /***************************************************************/
+    /* Retour : -                                                  */
+    /***************************************************************/
+    func setButtonFormat (button: UIButton) {
+        button.layer.borderWidth = 2                                    // Défini la largeur de la bordure
+        button.layer.borderColor = UIColor.lightGrayColor().CGColor     // Défini la couleur de la bordure
+    }
     
-    return Content                                                                              // Retourne l'URL du serveur
-}
-
-/***************************************************************/
-/* Nom : GetListOfAudioFiles                                   */
-/***************************************************************/
-/* Paramètres : -                                              */
-/***************************************************************/
-/* Description : Récupère l'ensemble des fichiers audio contenu*/
-/*               sur le serveur spécifié                       */
-/***************************************************************/
-/* Retour : dataTable : Tableau contenant les description des  */
-/*                      pistes audios du serveur               */
-/***************************************************************/
-public func getListOfAudioFiles () -> [String] {
-    var dataTable = [String]()                                                                               // Tableau retourné contenant les différentes pistes audios
-    
-    let request = NSMutableURLRequest(URL: NSURL(string: getServerURL() + "ListingAudioFiles.php")!)         // Préparation de la requête
-    
-    let task = NSURLSession.sharedSession().dataTaskWithRequest(request) {                                   // Lancement de la requête
-        data, response, error in
+    /***************************************************************/
+    /* Nom : getCustomDuration                                     */
+    /***************************************************************/
+    /* Paramètres : -                                              */
+    /***************************************************************/
+    /* Description : Défini la durée entrée par l'utilisateur      */
+    /***************************************************************/
+    /* Retour : Nombre de secondes totale                          */
+    /***************************************************************/
+    func getCustomDuration () -> Int{
+        let int_Seconds = Int(tf_Seconds.text!)                             // Récupère le nombre de secondes
+        let int_Minutes = Int(tf_Minutes.text!)                             // Récupère le nombre de minutes
+        let int_Houres = Int(tf_Houres.text!)                               // Récupère le nombre d'heures
         
-        if error != nil                                                                                      // Vérifie si une erreur est survenue
-        {
-            print("error=" + String(error))                                                                  // Affiche l'erreur
-            return
-        }
-        
-        let HTTPResponse = response as? NSHTTPURLResponse                                                    // Récupère les information envoyées par le serveur
-        let statusCode = HTTPResponse?.statusCode                                                            // Récupère le code HTTP renvoyé
-        if statusCode == 200 {                                                                               // Verifie que le serveur a bien répondu
-            let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)!                      // Récupère les données envoyées par le serveur
+        return int_Seconds! + (int_Minutes! * 60) + (int_Houres! * 3600)    // Additionne l'ensemble des temps et retourne le temps totale en secondes
+    }
+    
+    /***************************************************************/
+    /* Nom : timerFunction                                         */
+    /***************************************************************/
+    /* Paramètres : -                                              */
+    /***************************************************************/
+    /* Description : Fonction se lancant à chaque tic du timer     */
+    /***************************************************************/
+    /* Retour : -                                                  */
+    /***************************************************************/
+    func timerFunction() {
+        if bool_IsPause == false {                                                          // Vérifie que la lecture n'est pas en pause
+            int_Counter += 1                                                                // Incrémente le compteur
+            if int_Counter >= int_Duration {                                                // Vérifie si la lecture touche à son terme
+                mainTimer?.invalidate()                                                     // Arrète le timer
+                player?.pause()                                                             // Met en pause la lecture
+                bool_IsPlaying = false                                                      // Défini qu'aucune lecture n'est en cours
+                btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)  // Modifie l'image du bouton SoundControl
+            }
             
-            dataTable = (responseString.componentsSeparatedByCharactersInSet(NSCharacterSet(charactersInString: "|")))   // Transforme la chaîne de caractère en tableau
-        } else {
-            dataTable.append("Connexion failed, Status code : " + String(statusCode))                       // Affiche le code HTTP retourné
-            dataTable[0] = "Connexion failed, Status code : " + String(statusCode)
-        }
-    }
-    task.resume()
-    
-    while dataTable.count == 0 {                                                                            // Boucle d'attente d'exécution de la requête
-        
-    }
-    
-    return dataTable                                                                                        // Retourne le tableau contenant les pistes audios
-}
-
-/***************************************************************/
-/* Nom : searchInTable                                         */
-/***************************************************************/
-/* Paramètres : table_Search : Tableau contenant les résultats */
-/*                             d'une recherche                 */
-/*              table_Data : Tableau contenant l'ensemble des  */
-/*                           données                           */
-/*              exact_Value (Opt) : Valeur exacte recherchée   */
-/*                                  dans le tableau            */
-/***************************************************************/
-/* Description : Compare le tableau de recherche au tableau de */
-/*               donnée principale                             */
-/***************************************************************/
-/* Retour : Résultat de la comparaison ou nul si aucun résultat*/
-/*          trouvé                                             */
-/***************************************************************/
-public func searchInTable (table_Search: [String], table_Data: [[String]], exact_Value: String?) -> [String]? {
-    if exact_Value == nil {                 // Trouve la première occurence dans le tableau de donnée correspondant au tableau de recherche si valeur exacte non spécifiée
-        for x in table_Search {             // Parcours le tableau de recherche
-            for y in table_Data {           // Parcours le tableau de donnée
-                if x == y[0] {              // Dans le cas ou la recherche et la donnée sont égaux
-                    return y                // Retourne la ligne de donnée correspondante
-                }
+            if int_Duration - int_Counter == 30 && bool_IsFadeOutActivated == true{         // Dans le cas ou l'option Fade Out est activée et que la durée restante est de 30 secondes
+                fadeTimer = NSTimer.scheduledTimerWithTimeInterval(0.29, target: self, selector: #selector(ViewController.fadeOutFunction), userInfo: nil, repeats: true)   // Initialise le timer pour la fonction de Fade Out
             }
+            print(int_Counter)
         }
-    } else {                                // Trouve l'occurence exacte dans le tableau de donnée correspondant à la valeur recherchée acctive
-        for x in table_Data {               // Parcours le tableau de donnée
-            if exact_Value == x[0] {        // Dans le cas ou la valeur exacte recherchée est trouvée
-                return x                    // Retourne la ligne de donnée correspondante
+    }
+    
+    /***************************************************************/
+    /* Nom : fadeInFunction                                        */
+    /***************************************************************/
+    /* Paramètres : -                                              */
+    /***************************************************************/
+    /* Description : Permet de monter le volume progressivement du */
+    /*               volume de base (0 normalement) à 1            */
+    /***************************************************************/
+    /* Retour : -                                                  */
+    /***************************************************************/
+    func fadeInFunction() {
+        if bool_IsPause == false {                  // Vérifie que le lecteur n'est pas en pause
+            if player?.volume < 1 {                 // Vérifie que le volume n'a pas encore atteint la valeur maximal
+                player!.volume += 0.01              // Incrémente le volume du lecteur
+            } else {
+                fadeTimer?.invalidate()             // Arrete le timer de fade
             }
         }
     }
-    return nil                              // Dans le cas ou aucun résultat n'est trouvé, retourne nul
-}
-
-/***************************************************************/
-/* Nom : convertSecToHHMMSS                                    */
-/***************************************************************/
-/* Paramètres : dataTable : Tableau contenant les données de   */
-/*                          bases                              */
-/***************************************************************/
-/* Description : Converti une durée en seconde en hh:mm:ss     */
-/***************************************************************/
-/* Retour : resultTable : Contient les heures, minutes et      */
-/*                        secondes en position 0,1 et 2        */
-/***************************************************************/
-public func convertSecToHHMMSS (dataTable: [String]) -> [String] {
-    var duration = Int(dataTable[1])!                                   // Récupère la durée de la séquence
-    var resultTable = [String()]                                        // Déclare le tableau contenant le résultat
-    if duration > 3600 {                                                // Vérifie si la durée est supérieur à 1 heure
-        if duration / 3600 < 10 {                                       // Vérifie si le nombre d'heure est inférieur à 10
-            resultTable.append("0" + String(duration / 3600))           // Ajoute au tableau le nombre d'heure précedé d'un 0
-        } else {
-            resultTable.append(String(duration / 3600))                 // Ajoute au tableau le nombre d'heure
+    
+    /***************************************************************/
+    /* Nom : fadeInFunction                                        */
+    /***************************************************************/
+    /* Paramètres : -                                              */
+    /***************************************************************/
+    /* Description : Permet de baisser le volume progressivement du*/
+    /*               volume de base (1 normalement) à 0, puis      */
+    /*               arrete le lecteur                             */
+    /***************************************************************/
+    /* Retour : -                                                  */
+    /***************************************************************/
+    func fadeOutFunction() {
+        if bool_IsPause == false {                  // Vérifie que le lecteur n'est pas en pause
+            if player?.volume > 0 {                 // Vérifie que le volume n'a pas encore atteint la valeur minimale
+                player!.volume -= 0.01              // Décrémente le volume du lecteur
+            } else {
+                fadeTimer?.invalidate()             // Arrete le timer de fade
+                player?.pause()                     // Arrete le lecteur
+                bool_IsPlaying = false              // Défini qu'aucune lecture n'est en cours
+                bool_IsPause = false                // Défini que le lecteur n'est pas en pause
+                btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)  // Modifie l'image du bouton SoundControl
+            }
         }
-        duration -= (duration / 3600) * 3600                            // Retire les heures de la durée totale
-    } else {
-        resultTable.append("00")                                        // Ajoute au tableau un nombre d'heure nul
     }
-    
-    resultTable.append(String(duration / 60))                           // Défini le nombre de minutes
-    
-    if duration % 60 != 0 {                                             // Traitement des secondes si nécessaire (dans le cas ou il y a un reste)
-        if duration % 60 < 10 {                                         // Si le nombre de seconde est inférieur à 10
-            resultTable.append("0" + String(duration % 60))             // Rajoute un 0 avant le nombre de seconde
-        } else {
-            resultTable.append(String(duration % 60))                   // Défini le nombre de secondes
-        }
-    } else {                                                            // Dans le cas ou il n'y a pas de secondes (reste nul)
-        resultTable.append("00")                                        // assigne la valeur 00
-    }
-    
-    resultTable.removeFirst()                                           // Retire la première cellule du tableau (toujours nul)
-    
-    return resultTable                                                  // Retourne le résultat
 }
-/***************************************************************/
-/* Nom :                                                       */
-/***************************************************************/
-/* Paramètres :                                                */
-/***************************************************************/
-/* Description :                                               */
-/***************************************************************/
-/* Retour :                                                    */
-/***************************************************************/

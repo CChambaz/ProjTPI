@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A613C1881CE5C60200D123AA /* ListingAudioFiles.php in Resources */ = {isa = PBXBuildFile; fileRef = A613C1861CE5C60200D123AA /* ListingAudioFiles.php */; };
+		A613C1891CE5C60200D123AA /* StreamAudioFile.php in Resources */ = {isa = PBXBuildFile; fileRef = A613C1871CE5C60200D123AA /* StreamAudioFile.php */; };
+		A6A66CEF1CE316DE00C74149 /* Function.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A66CEE1CE316DE00C74149 /* Function.swift */; };
+		A6A66CF11CE3261100C74149 /* ConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A66CF01CE3261100C74149 /* ConfigurationView.swift */; };
 		A6A9CAB91CD1E67F00D02779 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A9CAB81CD1E67F00D02779 /* AppDelegate.swift */; };
 		A6A9CABB1CD1E67F00D02779 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A9CABA1CD1E67F00D02779 /* ViewController.swift */; };
 		A6A9CABE1CD1E67F00D02779 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A6A9CABC1CD1E67F00D02779 /* Main.storyboard */; };
@@ -35,6 +39,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A613C1861CE5C60200D123AA /* ListingAudioFiles.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = ListingAudioFiles.php; sourceTree = "<group>"; };
+		A613C1871CE5C60200D123AA /* StreamAudioFile.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = StreamAudioFile.php; sourceTree = "<group>"; };
+		A6A66CEE1CE316DE00C74149 /* Function.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Function.swift; sourceTree = "<group>"; };
+		A6A66CF01CE3261100C74149 /* ConfigurationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
 		A6A9CAB51CD1E67F00D02779 /* iBineuralBeat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iBineuralBeat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A9CAB81CD1E67F00D02779 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A6A9CABA1CD1E67F00D02779 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -76,9 +84,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A613C1851CE5C60200D123AA /* PHP */ = {
+			isa = PBXGroup;
+			children = (
+				A613C1861CE5C60200D123AA /* ListingAudioFiles.php */,
+				A613C1871CE5C60200D123AA /* StreamAudioFile.php */,
+			);
+			path = PHP;
+			sourceTree = "<group>";
+		};
 		A6A9CAAC1CD1E67F00D02779 = {
 			isa = PBXGroup;
 			children = (
+				A613C1851CE5C60200D123AA /* PHP */,
 				A6A9CAB71CD1E67F00D02779 /* iBineuralBeat */,
 				A6A9CACC1CD1E68000D02779 /* iBineuralBeatTests */,
 				A6A9CAD71CD1E68000D02779 /* iBineuralBeatUITests */,
@@ -101,11 +119,13 @@
 			children = (
 				A6A9CAB81CD1E67F00D02779 /* AppDelegate.swift */,
 				A6A9CABA1CD1E67F00D02779 /* ViewController.swift */,
+				A6A66CEE1CE316DE00C74149 /* Function.swift */,
 				A6A9CAE81CD2021200D02779 /* iBBConfiguration.txt */,
 				A6A9CABC1CD1E67F00D02779 /* Main.storyboard */,
 				A6A9CABF1CD1E67F00D02779 /* Assets.xcassets */,
 				A6A9CAC11CD1E67F00D02779 /* LaunchScreen.storyboard */,
 				A6A9CAC41CD1E67F00D02779 /* Info.plist */,
+				A6A66CF01CE3261100C74149 /* ConfigurationView.swift */,
 			);
 			path = iBineuralBeat;
 			sourceTree = "<group>";
@@ -233,6 +253,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6A9CAC31CD1E67F00D02779 /* LaunchScreen.storyboard in Resources */,
+				A613C1891CE5C60200D123AA /* StreamAudioFile.php in Resources */,
+				A613C1881CE5C60200D123AA /* ListingAudioFiles.php in Resources */,
 				A6A9CAC01CD1E67F00D02779 /* Assets.xcassets in Resources */,
 				A6A9CABE1CD1E67F00D02779 /* Main.storyboard in Resources */,
 				A6A9CAE91CD2021200D02779 /* iBBConfiguration.txt in Resources */,
@@ -261,7 +283,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6A9CABB1CD1E67F00D02779 /* ViewController.swift in Sources */,
+				A6A66CF11CE3261100C74149 /* ConfigurationView.swift in Sources */,
 				A6A9CAB91CD1E67F00D02779 /* AppDelegate.swift in Sources */,
+				A6A66CEF1CE316DE00C74149 /* Function.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

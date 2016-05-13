@@ -1,1 +1,3 @@
-http://www.ibineuralbeat.inf.etmlnet.local/
+http://www.ibineuralbeat.inf.etmlnet.local/Alternatif/
+false
+false
