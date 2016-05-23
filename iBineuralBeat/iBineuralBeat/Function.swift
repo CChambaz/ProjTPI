@@ -19,6 +19,7 @@ import UIKit
 /***************************************************************/
 
 class Function {
+    
     /***************************************************************/
     /* Nom : getConfiguration                                      */
     /***************************************************************/
@@ -27,22 +28,21 @@ class Function {
     /* Description : Récupère la configuration défini dans le      */
     /*               fichier iBBConfiguration.txt                  */
     /***************************************************************/
-    /* Retour : Content: Contenu du fichier de configuration       */
+    /* Retour : Tableau contenant la configuration                 */
     /***************************************************************/
-    func getConfiguration () -> String {
-        var Content = String()                                                                      // Variable contenant l'URL finale après traitement
+    func getConfiguration () -> [String] {
+        // Récupère le chemin du fichier de configuration
+        let FilePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")
         
-        let FilePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")     // Récupère le chemin du fichier de configuration
-        let FileContent = try? NSString(contentsOfFile: FilePath!, encoding: NSUTF8StringEncoding)  // Récupère le contenu du fichier de configuration
+        // Récupère le contenu du fichier de configuration
+        let FileContent = try? NSString(contentsOfFile: FilePath!, encoding: NSUTF8StringEncoding)
         
-        Content = FileContent!.stringByReplacingOccurrencesOfString("Optional(", withString: "")    // Retire le "Optional(" au début du contenu récupéré
-        Content = FileContent!.stringByReplacingOccurrencesOfString(")", withString: "")            // Retire le ")" à la fin du contenu récupéré
-        
-        return Content                                                                              // Retourne l'URL du serveur
+        // Retourne le contenu du fichier de configuration dans un tableau
+        return FileContent!.componentsSeparatedByString("\n")
     }
     
     /***************************************************************/
-    /* Nom : ModavConfiguration                                    */
+    /* Nom : modavConfiguration                                    */
     /***************************************************************/
     /* Paramètres : str_Configuration : chaîne de caractère        */
     /*                                  contenant la configuration */
@@ -52,144 +52,158 @@ class Function {
     /* Retour : Message de succès ou d'échec, concerne l'URL du    */
     /*          serveur qui est testée avant d'être approuvée      */
     /***************************************************************/
-    func ModavConfiguration (str_Configuration: String) -> String {
-        var textTable = getListOfAudioFiles(str_Configuration.componentsSeparatedByString("\n")[0])        // Vérifie que l'adresse du serveur est compatible avec l'application
+    func modavConfiguration (str_Configuration: String) -> String {
+        // Vérifie que l'adresse du serveur est compatible avec l'application
+        var textTable = getListOfAudioFiles(str_Configuration.componentsSeparatedByString("\n")[0])
         
-        if textTable[0].containsString("Connexion failed") {                                               // Dans le cas ou la connexion à échouée
-            return textTable[0]                                                                            // Retourne le message d'erreur
+        if textTable[0].containsString("Connexion failed") {
+            // Indique la présence d'une valeur invalide
+            return textTable[0]
         } else {
-            let filePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")        // Récupère le chemin du fichier de configuration
-            try? str_Configuration.writeToFile(filePath!, atomically: true, encoding: NSUTF8StringEncoding)// Modifie l'URL contenu dans le fichier par la nouvelle URL spécifié
+            // Récupère le chemin du fichier de configuration
+            let filePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")
+            
+            // Modifie le fichier de configuration avec la nouvelle configuration
+            try? str_Configuration.writeToFile(filePath!, atomically: true, encoding: NSUTF8StringEncoding)
         }
         
-        return "Success"                                                                                   // Retourne nul
+        // Indique le bon déroulement de l'opération
+        return "Success"
     }
     
     /***************************************************************/
-    /* Nom : GetListOfAudioFiles                                   */
+    /* Nom : getListOfAudioFiles                                   */
     /***************************************************************/
     /* Paramètres : -                                              */
     /***************************************************************/
     /* Description : Récupère l'ensemble des fichiers audio contenu*/
     /*               sur le serveur spécifié                       */
     /***************************************************************/
-    /* Retour : dataTable : Tableau contenant les description des  */
-    /*                      pistes audios du serveur               */
+    /* Retour : str_DataTable : Tableau contenant les description  */
+    /*                          des pistes audios du serveur       */
     /***************************************************************/
     func getListOfAudioFiles (str_URL: String) -> [String] {
-        var dataTable = [String]()                                                                               // Tableau retourné contenant les différentes pistes audios
+        var str_DataTable = [String]()
+
+        // Préparation de la requête
+        let request = NSMutableURLRequest(URL: NSURL(string: str_URL + "ListingAudioFiles.php")!)
         
-        let request = NSMutableURLRequest(URL: NSURL(string: str_URL + "ListingAudioFiles.php")!)         // Préparation de la requête
-        
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) {                                   // Lancement de la requête
+        // Lancement de la requête
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) {
             data, response, error in
             
-            if error != nil                                                                                      // Vérifie si une erreur est survenue
-            {
-                print("error=" + String(error))                                                                  // Affiche l'erreur
-                return
-            }
+            // Récupère les information envoyées par le serveur
+            let HTTPResponse = response as? NSHTTPURLResponse
             
-            let HTTPResponse = response as? NSHTTPURLResponse                                                    // Récupère les information envoyées par le serveur
-            let statusCode = HTTPResponse?.statusCode                                                            // Récupère le code HTTP renvoyé
-            if statusCode == 200 {                                                                               // Verifie que le serveur a bien répondu
-                let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)!                      // Récupère les données envoyées par le serveur
+            // Récupère le code HTTP renvoyé
+            let int_StatusCode = HTTPResponse?.statusCode
+            
+            if int_StatusCode == 200 {
                 
-                dataTable = (responseString.componentsSeparatedByCharactersInSet(NSCharacterSet(charactersInString: "|")))   // Transforme la chaîne de caractère en tableau
+                // Récupère les données envoyées par le serveur
+                let str_Response = NSString(data: data!, encoding: NSUTF8StringEncoding)!
+                
+                // Transforme la chaîne de caractère en tableau
+                str_DataTable = (str_Response.componentsSeparatedByCharactersInSet(NSCharacterSet(charactersInString: "|")))
             } else {
-                dataTable.append("Connexion failed, Status code : " + String(statusCode))                       // Affiche le code HTTP retourné
-                dataTable[0] = "Connexion failed, Status code : " + String(statusCode)
+                // Ajoute une message d'echec
+                str_DataTable.append("Connexion failed, Status code : " + String(int_StatusCode))
             }
         }
         task.resume()
         
-        while dataTable.count == 0 {                                                                            // Boucle d'attente d'exécution de la requête
+        // Boucle d'attente d'exécution de la requête
+        while str_DataTable.count == 0 {
             
         }
-        
-        return dataTable                                                                                        // Retourne le tableau contenant les pistes audios
+
+        // Retourne le tableau contenant les pistes audios
+        return str_DataTable
     }
     
     /***************************************************************/
     /* Nom : searchInTable                                         */
     /***************************************************************/
-    /* Paramètres : table_Search : Tableau contenant les résultats */
-    /*                             d'une recherche                 */
-    /*              table_Data : Tableau contenant l'ensemble des  */
-    /*                           données                           */
-    /*              exact_Value (Opt) : Valeur exacte recherchée   */
-    /*                                  dans le tableau            */
+    /* Paramètres : str_TableData : Tableau contenant l'ensemble   */
+    /*                              des données                    */
+    /*              str_Value : Valeur exacte recherchée           */
+    /*                          dans le tableau                    */
     /***************************************************************/
-    /* Description : Compare le tableau de recherche au tableau de */
-    /*               donnée principale                             */
+    /* Description : Recherche une valeur dans le tableau spécifié */
     /***************************************************************/
     /* Retour : Résultat de la comparaison ou nul si aucun résultat*/
     /*          trouvé                                             */
     /***************************************************************/
-    func searchInTable (table_Search: [String], table_Data: [[String]], exact_Value: String?) -> [String]? {
-        if exact_Value == nil {                 // Trouve la première occurence dans le tableau de donnée correspondant au tableau de recherche si valeur exacte non spécifiée
-            for x in table_Search {             // Parcours le tableau de recherche
-                for y in table_Data {           // Parcours le tableau de donnée
-                    if x == y[0] {              // Dans le cas ou la recherche et la donnée sont égaux
-                        return y                // Retourne la ligne de donnée correspondante
-                    }
-                }
-            }
-        } else {                                // Trouve l'occurence exacte dans le tableau de donnée correspondant à la valeur recherchée acctive
-            for x in table_Data {               // Parcours le tableau de donnée
-                if exact_Value == x[0] {        // Dans le cas ou la valeur exacte recherchée est trouvée
-                    return x                    // Retourne la ligne de donnée correspondante
-                }
+    func searchInTable (str_TableData: [[String]], str_Value: String?) -> [String]? {
+        // Parcours le tableau de donnée
+        for x in str_TableData {
+            if str_Value == x[0] {
+                // Retourne la ligne de donnée correspondante
+                return x
             }
         }
-        return nil                              // Dans le cas ou aucun résultat n'est trouvé, retourne nul
+        // Dans le cas ou aucun résultat n'est trouvé, retourne nul
+        return nil
     }
     
     /***************************************************************/
     /* Nom : convertSecToHHMMSS                                    */
     /***************************************************************/
-    /* Paramètres : dataTable : Tableau contenant les données de   */
-    /*                          bases                              */
+    /* Paramètres : str_DataTable : Tableau contenant les données  */
+    /*                              de la piste audio              */
     /***************************************************************/
     /* Description : Converti une durée en seconde en hh:mm:ss     */
     /***************************************************************/
-    /* Retour : resultTable : Contient les heures, minutes et      */
-    /*                        secondes en position 0,1 et 2        */
+    /* Retour : str_ResultTable : Contient les heures, minutes et  */
+    /*                            secondes en position 0,1 et 2    */
     /***************************************************************/
-    func convertSecToHHMMSS (dataTable: [String]) -> [String] {
-        var duration = Int(dataTable[1])!                                   // Récupère la durée de la séquence
-        var resultTable = [String()]                                        // Déclare le tableau contenant le résultat
-        if duration >= 3600 {                                                // Vérifie si la durée est supérieur à 1 heure
-            if duration / 3600 < 10 {                                       // Vérifie si le nombre d'heure est inférieur à 10
-                resultTable.append("0" + String(duration / 3600))           // Ajoute au tableau le nombre d'heure précedé d'un 0
+    func convertSecToHHMMSS (str_DataTable: [String]) -> [String] {
+        // Récupère la durée de la séquence
+        var int_Duration = Int(str_DataTable[1])!
+        
+        // Déclare le tableau contenant le résultat
+        var str_ResultTable = [String()]
+        
+        // Traitement du nombre d'heure
+        if int_Duration >= 3600 {
+            if int_Duration / 3600 < 10 {
+                str_ResultTable.append("0" + String(int_Duration / 3600))
             } else {
-                resultTable.append(String(duration / 3600))                 // Ajoute au tableau le nombre d'heure
+                str_ResultTable.append(String(int_Duration / 3600))
             }
-            duration -= (duration / 3600) * 3600                            // Retire les heures de la durée totale
+            // Retire le nombre d'heure à la durée totale
+            int_Duration -= (int_Duration / 3600) * 3600
         } else {
-            resultTable.append("00")                                        // Ajoute au tableau un nombre d'heure nul
+            // Ajoute au tableau un nombre d'heure nul
+            str_ResultTable.append("00")
         }
         
-        if (duration / 60) >= 10 {                                          // Traitement des minutes
-            resultTable.append(String(duration / 60))                       // Dans le cas ou le nombre de minutes est supérieur à 10, l'insère dans le tableau
+        // Traitement des minutes
+        if (int_Duration / 60) >= 10 {
+            str_ResultTable.append(String(int_Duration / 60))
         } else {
-            resultTable.append("0" + String(duration / 60))                 // Dans le cas ou le nombre de minutes est inférieur à 10, l'insère dans le tableau précédé d'un 0
+            str_ResultTable.append("0" + String(int_Duration / 60))
         }
         
+        // Retire le nombre de minutes à la durée totale
+        int_Duration = int_Duration % 60
         
-        if duration % 60 != 0 {                                             // Traitement des secondes si nécessaire (dans le cas ou il y a un reste)
-            if duration % 60 <= 10 {                                        // Si le nombre de seconde est inférieur à 10
-                resultTable.append("0" + String(duration % 60))             // Rajoute un 0 avant le nombre de seconde
+        // Traitement des secondes
+        if int_Duration != 0 {
+            if int_Duration <= 10 {
+                str_ResultTable.append("0" + String(int_Duration))
             } else {
-                resultTable.append(String(duration % 60))                   // Défini le nombre de secondes
+                str_ResultTable.append(String(int_Duration))
             }
-        } else {                                                            // Dans le cas ou il n'y a pas de secondes (reste nul)
-            resultTable.append("00")                                        // assigne la valeur 00
+        } else {
+            str_ResultTable.append("00")
         }
         
-        resultTable.removeFirst()                                           // Retire la première cellule du tableau (toujours nul)
+        // Retire la première cellule du tableau (toujours nul)
+        str_ResultTable.removeFirst()
         
-        return resultTable                                                  // Retourne le résultat
+        // Retourne le résultat
+        return str_ResultTable
     }
     
     /***************************************************************/
@@ -207,9 +221,11 @@ class Function {
     func checkTextBoxNumFormat (tf_Checked: UITextField) -> Int {
         // Vérifie que la zone de text contient bien un chiffre
         if Int(tf_Checked.text!) != nil {
-            return Int(tf_Checked.text!)!                    // Retourne le nombre contenu dans la zone de text
+            // Retourne le nombre contenu dans la zone de text
+            return Int(tf_Checked.text!)!
         } else {
-            return 0                                         // Retourne 0 dans le cas ou la zone de text ne contient pas un chiffre
+            // Retourne 0
+            return 0
         }
     }
     
@@ -224,13 +240,12 @@ class Function {
     /* Retour : Charactère au bon format selon la valeur numérique */
     /***************************************************************/
     func defineNumericValueFormat (int_Number: Int) -> String {
-        // Vérifie que la valeur numérique est comprise entre 0 et 10
         if int_Number < 10 && int_Number >= 0 {
-            return "0" + String(int_Number)             // Retourne le nombre sous format texte en ajoutant un 0 en première position
-        } else if int_Number < 0 {                      // Vérifie que le nombre est inférieur à 0
-            return "00"                                 // Retourne 00
+            return "0" + String(int_Number)
+        } else if int_Number < 0 {
+            return "00"
         } else {
-            return String(int_Number)                   // Retourne le nombre sous format texte
+            return String(int_Number)
         }
     }
 }

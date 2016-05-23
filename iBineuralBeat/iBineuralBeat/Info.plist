@@ -30,6 +30,12 @@
 		<dict>
 			<key>http://www.ibineuralbeat.inf.etmlnet.local/</key>
 			<string></string>
+			<key>http://www.ibineuralbeat.inf.etmlnet.local/Alternatif/</key>
+			<string></string>
+			<key>http://www.ibineuralbeat.inf.etmlnet.local/Alternatif/ListingAudioFiles.php</key>
+			<string></string>
+			<key>http://www.ibineuralbeat.inf.etmlnet.local/Alternatif/StreamAudioFile.php</key>
+			<string></string>
 			<key>http://www.ibineuralbeat.inf.etmlnet.local/ListingAudioFiles.php</key>
 			<string></string>
 			<key>http://www.ibineuralbeat.inf.etmlnet.local/StreamAudioFile.php</key>
