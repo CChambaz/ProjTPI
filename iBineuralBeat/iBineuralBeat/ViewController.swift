@@ -46,6 +46,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     
     // Tableau contenant l'ensemble des pistes audio
     var str_RecupDatas = [String()]
+    var str_GlobalDatas = [[String()]]
     
     // Tableau contenant l'ensemble des pistes audio spécifiques à une catégorie
     var str_Categorie1Datas = [[String()]]
@@ -78,6 +79,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     // Booléen définissant si une recherche est en cours
     var bool_IsSearching = Bool()
     
+    // Booléen définissant si une durée spécifique est entrée
+    var bool_IsCustomDuration = Bool()
+    
     // Booléen définissant le statut de la lecture
     var bool_IsPlaying = Bool()
     var bool_IsPause = Bool()
@@ -94,10 +98,12 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     var mainTimer:NSTimer?
     var fadeTimer:NSTimer?
     
+    // Timer utilisé pour la mise à jour des zones de text concernant la durée
+    var updateTimesTextFieldTimer:NSTimer?
+    
     // MARK: Initialisation
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         // Récupère la configuration de l'application
         str_ConfigurationDatas = function.getConfiguration()
         
@@ -106,6 +112,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         
         // Indique qu'aucune recherche n'est en cours
         bool_IsSearching = false
+        
+        // Indique que la durée n'est pas une durée spécifique
+        bool_IsCustomDuration = false
         
         // Indique que le lecteur n'est pas en pause
         bool_IsPause = false
@@ -128,6 +137,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         
         // Met en évidence le bouton de la catégorie 1 (active par défaut)
         btn_Categorie1.backgroundColor = UIColor.lightGrayColor()
+        
+        // Initialisation du timer pour mettre à jour les zones de text concernant la durée
+        updateTimesTextFieldTimer = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: #selector(ViewController.updateTimesTextField), userInfo: nil, repeats: true)
     }
 
     override func didReceiveMemoryWarning() {
@@ -153,21 +165,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     // Défini les données que le PickerView va afficher et les actions effectuées lors du changement de valeur
     func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if bool_IsSearching == false {
-            // Met à jour les zones de texts concernant la durée
-            updateTimesTextField(str_ActiveCategorieDatas[row])
-            
-            // Défini que le nom du fichier est celui sélectionné
-            str_FileName = str_ActiveCategorieDatas[row][0]
-            
             // Retourne les noms des séquences de la catégorie active
             return str_ActiveCategorieDatas[row][0]
         } else {
-            // Met à jour les zones de texts concernant la durée
-            updateTimesTextField(function.searchInTable(str_ActiveCategorieDatas, str_Value: str_SearchResults[row])!)
-            
-            // Défini que le nom du fichier est celui sélectionné
-            str_FileName = str_SearchResults[row]
-            
             // Retourne les résultats de la recherche
             return str_SearchResults[row]
         }
@@ -186,12 +186,31 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
                 // Relance la lecture
                 player?.play()
             } else {
-                // Construction de l'url pour lancer le streaming depuis la page PHP
-                let urlForStream = NSURL(string: str_ConfigurationDatas[0] + "StreamAudioFile.php?filePath=Audio/"
-                    + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")
+                // Déclaration de la variable contenant l'URL pour lancer le streaming depuis la page PHP
+                var urlForStream = NSURL()
+                
+                // Défini que le nom du fichier est celui sélectionné dans le PickerView
+                if bool_IsSearching == true {
+                    // Récupère le nom de la piste à lire dans le tableau global
+                    str_FileName = function.searchInTable(str_GlobalDatas, str_Value: str_SearchResults[Int(pv_Selection.selectedRowInComponent(0).description)!])![0]
+                    
+                    // Récupère la catégorie de la piste à lire dans le tableau global
+                    let str_SearchCategorie = function.searchInTable(str_GlobalDatas, str_Value: str_SearchResults[Int(pv_Selection.selectedRowInComponent(0).description)!])![2]
+                    
+                    // Construction de l'url pour lancer le streaming depuis la page PHP
+                    urlForStream = NSURL(string: str_ConfigurationDatas[0] + "StreamAudioFile.php?filePath=Audio/"
+                        + str_SearchCategorie + "/" + str_FileName + ".wav")!
+                } else {
+                    // Récupère le nom de la piste à lire dans le tableau de la catégorie active
+                    str_FileName = str_ActiveCategorieDatas[Int(pv_Selection.selectedRowInComponent(0).description)!][0]
+                    
+                    // Construction de l'url pour lancer le streaming depuis la page PHP
+                    urlForStream = NSURL(string: str_ConfigurationDatas[0] + "StreamAudioFile.php?filePath=Audio/"
+                        + String(int_ActiveCategorie) + "/" + str_FileName + ".wav")!
+                }
                 
                 // Défini le fichier à lire selon l'url précedente
-                playerItem = AVPlayerItem(URL: urlForStream!)
+                playerItem = AVPlayerItem(URL: urlForStream)
                 
                 // Assigne le fichier à lire précedent au lecteur
                 player=AVPlayer(playerItem: playerItem!)
@@ -210,8 +229,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
                     int_Counter = 0
                     
                     // Initialise le timer principale
-                    mainTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.timerFunction),
-                                                                       userInfo: nil, repeats: true)
+                    mainTimer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.timerFunction), userInfo: nil, repeats: true)
                     
                     // Défini qu'aucune action n'est menée à la fin de la lecture
                     player?.actionAtItemEnd = .None
@@ -253,11 +271,22 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     // Arrête la lecture
     @IBAction func stopSound(sender: AnyObject) {
         if bool_IsFadeOutActivated == true && sw_Illimited.on == true {
-            // Désactive le bouton de lancement de la lecture
-            btn_SoundControl.enabled = false
-            
-            // Initialise le timer pour la fonction de Fade Out
-            fadeTimer = NSTimer.scheduledTimerWithTimeInterval(0.29, target: self, selector: #selector(ViewController.fadeOutFunction), userInfo: nil, repeats: true)
+            if bool_IsPause == true {
+                // Invalide la pause
+                bool_IsPause = false
+                
+                // Indique que la lecture est terminé
+                bool_IsPlaying = false
+            } else {
+                // Désactive le bouton de lancement de la lecture
+                btn_SoundControl.enabled = false
+                
+                // Réinitialise le timer de fade
+                fadeTimer?.invalidate()
+                
+                // Initialise le timer pour la fonction de Fade Out
+                fadeTimer = NSTimer.scheduledTimerWithTimeInterval(0.29, target: self, selector: #selector(ViewController.fadeOutFunction), userInfo: nil, repeats: true)
+            }
         } else {
             // Arrète la lecture
             player?.pause()
@@ -359,6 +388,24 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         // Réinitialise le tableau de recherche
         str_SearchResults.removeAll()
         
+        // Défini si la recherche se base sur le nom ou la durée
+        if Int(str_SearchText!) == nil {
+            // Parcours le tableau contenant les séquences de la catégorie active
+            for x in str_GlobalDatas {
+                if x[0].containsString(str_SearchText!) {
+                    // Ajoute le nom au tableau de la recherche
+                    str_SearchResults.append(x[0])
+                }
+            }
+        } else {
+            for x in str_GlobalDatas {
+                // Converti la durée en minutes et la compare avec le critère de recherche
+                if String(Int(x[1])! / 60).containsString(str_SearchText!) {
+                    str_SearchResults.append(x[0])
+                }
+            }
+        }
+        
         // Active ou désactive les boutons de sélection des catégories selon le critère de recherche
         if str_SearchText == "" || str_SearchText == nil {
             btn_Categorie1.enabled = true
@@ -367,35 +414,32 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
             
             // Indique qu'aucune recherche n'est en cours
             bool_IsSearching = false
+            
+            // Active le bouton de gestion du son
+            btn_SoundControl.enabled = true
         } else {
             btn_Categorie1.enabled = false
             btn_Categorie2.enabled = false
             btn_Categorie3.enabled = false
             
+            // Active ou désactive le bouton de gestion du son si des résultats ont été trouvé
+            if str_SearchResults.count == 0 {
+                btn_SoundControl.enabled = false
+            } else {
+                btn_SoundControl.enabled = true
+            }
+            
             // Indique que la recherche est en cours
             bool_IsSearching = true
         }
-        
-        // Défini si la recherche se base sur le nom ou la durée
-        if Int(str_SearchText!) == nil {
-            // Parcours le tableau contenant les séquences de la catégorie active
-            for x in str_ActiveCategorieDatas {
-                if x[0].containsString(str_SearchText!) {
-                    // Ajoute le nom au tableau de la recherche
-                    str_SearchResults.append(x[0])
-                }
-            }
-        } else {
-            for x in str_ActiveCategorieDatas {
-                // Converti la durée en minutes et la compare avec le critère de recherche
-                if String(Int(x[1])! / 60).containsString(str_SearchText!) {
-                    str_SearchResults.append(x[0])
-                }
-            }
-        }
-        
+
         // Recharge le PickerView
         pv_Selection.reloadAllComponents()
+    }
+    
+    // Indique que l'utilisateur commence à rentrer une valeur
+    @IBAction func stopAutomaticUpdate(sender: AnyObject) {
+        bool_IsCustomDuration = true
     }
     
     // Vérification des zone de textes concernant la durée lors de la modification par l'utilisateur
@@ -406,7 +450,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         var int_Seconds = function.checkTextBoxNumFormat(tf_Seconds)
         
         // Traitement du nombre de secondes éxedentaire
-        if int_Seconds > 60 {
+        if int_Seconds >= 60 {
             // Incrémente le nombre de minutes totale par le nombre de secondes éxedentaires
             int_Minutes = int_Minutes + (int_Seconds / 60)
             
@@ -415,7 +459,7 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         }
         
         // Traitement du nombre de minutes éxedentaire
-        if int_Minutes > 60 {
+        if int_Minutes >= 60 {
             // Incrémente le nombre d'heures par le nombre de minutes éxedentaires
             int_Houres = int_Houres + (int_Minutes / 60)
             
@@ -427,6 +471,13 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         tf_Houres.text = function.defineNumericValueFormat(int_Houres)
         tf_Minutes.text = function.defineNumericValueFormat(int_Minutes)
         tf_Seconds.text = function.defineNumericValueFormat(int_Seconds)
+        
+        // Défini si la durée est spécifique ou non
+        if int_Houres == 0 && int_Minutes == 0 && int_Seconds == 0 {
+            bool_IsCustomDuration = false
+        } else {
+            bool_IsCustomDuration = true
+        }
     }
     
     
@@ -480,6 +531,9 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
                 str_Categorie1Datas.append(x.componentsSeparatedByString("-"))
                 int_Categorie1Count += 1
             }
+            
+            // Rempli le tableau globale
+            str_GlobalDatas.append(x.componentsSeparatedByString("-"))
         }
         
         // Vérifie que le bon nombre de donnée ont été rentrée
@@ -543,21 +597,33 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     /***************************************************************/
     /* Nom : updateTimesTextField                                  */
     /***************************************************************/
-    /* Paramètres : str_DataTable : Tableau contenant les données  */
-    /*                           utilisées                         */
+    /* Paramètres : -                                              */
     /***************************************************************/
     /* Description : Met à jours les différents champs de temps    */
     /***************************************************************/
     /* Retour : -                                                  */
     /***************************************************************/
-    func updateTimesTextField (str_DataTable: [String]) {
-        // Convertie les secondes en heures, minutes et secondes
-        var str_DetailTable = function.convertSecToHHMMSS(str_DataTable)
-        
-        // Met à jour les valeurs contenu par les zones de textes concernant la durée
-        tf_Houres.text = str_DetailTable[0]
-        tf_Minutes.text = str_DetailTable[1]
-        tf_Seconds.text = str_DetailTable[2]
+    func updateTimesTextField () {
+        if bool_IsCustomDuration == false {
+            // Déclaration du tableau contenant les détails de la piste active
+            var str_DetailTable = [String]()
+            
+            // Convertie les secondes en heures, minutes et secondes
+            if bool_IsSearching == true && pv_Selection.numberOfRowsInComponent(0) != 0{
+                str_DetailTable = function.convertSecToHHMMSS(function.searchInTable(str_GlobalDatas, str_Value: str_SearchResults[Int(pv_Selection.selectedRowInComponent(0).description)!])!)
+            } else if pv_Selection.numberOfRowsInComponent(0) != 0 {
+                str_DetailTable = function.convertSecToHHMMSS(str_ActiveCategorieDatas[Int(pv_Selection.selectedRowInComponent(0).description)!])
+            } else {
+                str_DetailTable.append("00")
+                str_DetailTable.append("00")
+                str_DetailTable.append("00")
+            }
+            
+            // Met à jour les valeurs contenu par les zones de textes concernant la durée
+            tf_Houres.text = str_DetailTable[0]
+            tf_Minutes.text = str_DetailTable[1]
+            tf_Seconds.text = str_DetailTable[2]
+        }
     }
     
     /***************************************************************/
@@ -664,17 +730,19 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     /* Retour : -                                                  */
     /***************************************************************/
     func fadeInFunction() {
-        if bool_IsPause == false {                  // Vérifie que le lecteur n'est pas en pause
-            if player?.volume < 1 {                 // Vérifie que le volume n'a pas encore atteint la valeur maximal
-                player!.volume += 0.01              // Incrémente le volume du lecteur
+        if bool_IsPause == false {
+            if player?.volume < 1 {
+                // Incrémente le volume du lecteur
+                player!.volume += 0.01
             } else {
-                fadeTimer?.invalidate()             // Arrete le timer de fade
+                // Arrete le timer de fade
+                fadeTimer?.invalidate()
             }
         }
     }
     
     /***************************************************************/
-    /* Nom : fadeInFunction                                        */
+    /* Nom : fadeOutFunction                                        */
     /***************************************************************/
     /* Paramètres : -                                              */
     /***************************************************************/
@@ -685,16 +753,28 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     /* Retour : -                                                  */
     /***************************************************************/
     func fadeOutFunction() {
-        if bool_IsPause == false {                  // Vérifie que le lecteur n'est pas en pause
-            if player?.volume > 0 {                 // Vérifie que le volume n'a pas encore atteint la valeur minimale
-                player!.volume -= 0.01              // Décrémente le volume du lecteur
+        if bool_IsPause == false {
+            if player?.volume > 0 {
+                // Décrémente le volume du lecteur
+                player!.volume -= 0.01
             } else {
-                fadeTimer?.invalidate()             // Arrete le timer de fade
-                player?.pause()                     // Arrete le lecteur
-                bool_IsPlaying = false              // Défini qu'aucune lecture n'est en cours
-                bool_IsPause = false                // Défini que le lecteur n'est pas en pause
+                // Arrete le timer de fade
+                fadeTimer?.invalidate()
+                
+                // Arrete la lecture
+                player?.pause()
+                
+                // Défini qu'aucune lecture n'est en cours
+                bool_IsPlaying = false
+                
+                // Défini que le lecteur n'est pas en pause
+                bool_IsPause = false
+                
+                // Active le bouton de gestion de la lecture
                 btn_SoundControl.enabled = true
-                btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)  // Modifie l'image du bouton SoundControl
+                
+                // Modifie l'image du bouton SoundControl
+                btn_SoundControl.setImage(UIImage(named: "PlayButton"), forState: .Normal)
             }
         }
     }

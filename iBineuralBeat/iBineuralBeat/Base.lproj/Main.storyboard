@@ -79,6 +79,7 @@
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <action selector="checkCustomDuration:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="dSy-6v-1zS"/>
+                                    <action selector="stopAutomaticUpdate:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="yDB-4m-Oz6"/>
                                 </connections>
                             </textField>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="00" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Dpx-4Q-v8g">
@@ -91,6 +92,7 @@
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <action selector="checkCustomDuration:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="Fls-zt-UjB"/>
+                                    <action selector="stopAutomaticUpdate:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="2U3-E2-yrd"/>
                                 </connections>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Illimité :" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ror-VI-FES">
@@ -139,6 +141,7 @@
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <action selector="checkCustomDuration:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="NuV-33-zcl"/>
+                                    <action selector="stopAutomaticUpdate:" destination="BYZ-38-t0r" eventType="editingDidBegin" id="05T-gk-87R"/>
                                 </connections>
                             </textField>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5mG-TF-jD4">

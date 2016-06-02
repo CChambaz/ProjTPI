@@ -17,19 +17,11 @@
 		A6A9CAC01CD1E67F00D02779 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6A9CABF1CD1E67F00D02779 /* Assets.xcassets */; };
 		A6A9CAC31CD1E67F00D02779 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A6A9CAC11CD1E67F00D02779 /* LaunchScreen.storyboard */; };
 		A6A9CACE1CD1E68000D02779 /* iBineuralBeatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A9CACD1CD1E68000D02779 /* iBineuralBeatTests.swift */; };
-		A6A9CAD91CD1E68000D02779 /* iBineuralBeatUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A9CAD81CD1E68000D02779 /* iBineuralBeatUITests.swift */; };
 		A6A9CAE91CD2021200D02779 /* iBBConfiguration.txt in Resources */ = {isa = PBXBuildFile; fileRef = A6A9CAE81CD2021200D02779 /* iBBConfiguration.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A6A9CACA1CD1E68000D02779 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6A9CAAD1CD1E67F00D02779 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A6A9CAB41CD1E67F00D02779;
-			remoteInfo = iBineuralBeat;
-		};
-		A6A9CAD51CD1E68000D02779 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A6A9CAAD1CD1E67F00D02779 /* Project object */;
 			proxyType = 1;
@@ -53,9 +45,6 @@
 		A6A9CAC91CD1E68000D02779 /* iBineuralBeatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iBineuralBeatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6A9CACD1CD1E68000D02779 /* iBineuralBeatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iBineuralBeatTests.swift; sourceTree = "<group>"; };
 		A6A9CACF1CD1E68000D02779 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A6A9CAD41CD1E68000D02779 /* iBineuralBeatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iBineuralBeatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A6A9CAD81CD1E68000D02779 /* iBineuralBeatUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iBineuralBeatUITests.swift; sourceTree = "<group>"; };
-		A6A9CADA1CD1E68000D02779 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A6A9CAE81CD2021200D02779 /* iBBConfiguration.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iBBConfiguration.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -68,13 +57,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A6A9CAC61CD1E68000D02779 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A6A9CAD11CD1E68000D02779 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -99,7 +81,6 @@
 				A613C1851CE5C60200D123AA /* PHP */,
 				A6A9CAB71CD1E67F00D02779 /* iBineuralBeat */,
 				A6A9CACC1CD1E68000D02779 /* iBineuralBeatTests */,
-				A6A9CAD71CD1E68000D02779 /* iBineuralBeatUITests */,
 				A6A9CAB61CD1E67F00D02779 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,7 +90,6 @@
 			children = (
 				A6A9CAB51CD1E67F00D02779 /* iBineuralBeat.app */,
 				A6A9CAC91CD1E68000D02779 /* iBineuralBeatTests.xctest */,
-				A6A9CAD41CD1E68000D02779 /* iBineuralBeatUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -137,15 +117,6 @@
 				A6A9CACF1CD1E68000D02779 /* Info.plist */,
 			);
 			path = iBineuralBeatTests;
-			sourceTree = "<group>";
-		};
-		A6A9CAD71CD1E68000D02779 /* iBineuralBeatUITests */ = {
-			isa = PBXGroup;
-			children = (
-				A6A9CAD81CD1E68000D02779 /* iBineuralBeatUITests.swift */,
-				A6A9CADA1CD1E68000D02779 /* Info.plist */,
-			);
-			path = iBineuralBeatUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -186,24 +157,6 @@
 			productReference = A6A9CAC91CD1E68000D02779 /* iBineuralBeatTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A6A9CAD31CD1E68000D02779 /* iBineuralBeatUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A6A9CAE31CD1E68000D02779 /* Build configuration list for PBXNativeTarget "iBineuralBeatUITests" */;
-			buildPhases = (
-				A6A9CAD01CD1E68000D02779 /* Sources */,
-				A6A9CAD11CD1E68000D02779 /* Frameworks */,
-				A6A9CAD21CD1E68000D02779 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A6A9CAD61CD1E68000D02779 /* PBXTargetDependency */,
-			);
-			name = iBineuralBeatUITests;
-			productName = iBineuralBeatUITests;
-			productReference = A6A9CAD41CD1E68000D02779 /* iBineuralBeatUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -218,10 +171,6 @@
 						CreatedOnToolsVersion = 7.3;
 					};
 					A6A9CAC81CD1E68000D02779 = {
-						CreatedOnToolsVersion = 7.3;
-						TestTargetID = A6A9CAB41CD1E67F00D02779;
-					};
-					A6A9CAD31CD1E68000D02779 = {
 						CreatedOnToolsVersion = 7.3;
 						TestTargetID = A6A9CAB41CD1E67F00D02779;
 					};
@@ -242,7 +191,6 @@
 			targets = (
 				A6A9CAB41CD1E67F00D02779 /* iBineuralBeat */,
 				A6A9CAC81CD1E68000D02779 /* iBineuralBeatTests */,
-				A6A9CAD31CD1E68000D02779 /* iBineuralBeatUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -262,13 +210,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A6A9CAC71CD1E68000D02779 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A6A9CAD21CD1E68000D02779 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -297,14 +238,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A6A9CAD01CD1E68000D02779 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A6A9CAD91CD1E68000D02779 /* iBineuralBeatUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -312,11 +245,6 @@
 			isa = PBXTargetDependency;
 			target = A6A9CAB41CD1E67F00D02779 /* iBineuralBeat */;
 			targetProxy = A6A9CACA1CD1E68000D02779 /* PBXContainerItemProxy */;
-		};
-		A6A9CAD61CD1E68000D02779 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A6A9CAB41CD1E67F00D02779 /* iBineuralBeat */;
-			targetProxy = A6A9CAD51CD1E68000D02779 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -429,6 +357,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEFINES_MODULE = YES;
 				INFOPLIST_FILE = iBineuralBeat/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ETML.iBineuralBeat;
@@ -440,6 +369,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEFINES_MODULE = YES;
 				INFOPLIST_FILE = iBineuralBeat/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ETML.iBineuralBeat;
@@ -471,28 +401,6 @@
 			};
 			name = Release;
 		};
-		A6A9CAE41CD1E68000D02779 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				INFOPLIST_FILE = iBineuralBeatUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = ETML.iBineuralBeatUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_TARGET_NAME = iBineuralBeat;
-			};
-			name = Debug;
-		};
-		A6A9CAE51CD1E68000D02779 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				INFOPLIST_FILE = iBineuralBeatUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = ETML.iBineuralBeatUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_TARGET_NAME = iBineuralBeat;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -519,15 +427,6 @@
 			buildConfigurations = (
 				A6A9CAE11CD1E68000D02779 /* Debug */,
 				A6A9CAE21CD1E68000D02779 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A6A9CAE31CD1E68000D02779 /* Build configuration list for PBXNativeTarget "iBineuralBeatUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A6A9CAE41CD1E68000D02779 /* Debug */,
-				A6A9CAE51CD1E68000D02779 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

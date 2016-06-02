@@ -10,27 +10,18 @@ import XCTest
 @testable import iBineuralBeat
 
 class iBineuralBeatTests: XCTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    // Test de la fonction intéragissant avec le serveur
+    func testServerResponse() {
+        // Test avec une URL invalide
+        let falseUrl = Function().getListOfAudioFiles("www.somefalseURL.com/forTest")
+        XCTAssertTrue(falseUrl[0].containsString("Connexion failed"), "Il est possible de se connecter avec une fausse URL")
+        
+        // Test avec URL vide
+        let nilURL = Function().getListOfAudioFiles("")
+        XCTAssertTrue(nilURL[0].containsString("Connexion failed"), "Il est possible de se connecter avec une URL nul")
+        
+        // Test avec URL valide
+        let validURL = Function().getListOfAudioFiles("http://www.ibineuralbeat.inf.etmlnet.local/Alternatif/")
+        XCTAssertFalse(validURL[0].containsString("Connexion failed"), "Il est impossible de connecter avec une URL valide")
     }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
 }
