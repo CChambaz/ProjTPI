@@ -54,16 +54,14 @@ class ConfigurationView: UIViewController {
         sw_FadeOut.on = bool_IsFadeOutActivated
     }
     
-    // Vérification et modification de la configuration
+    // Modification de la configuration et retour sur la page principale
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Test la validité de l'URL
-        if Function().modavConfiguration(tf_ServerURL.text! + "\n" + String(sw_FadeIn.on) + "\n" + String(sw_FadeOut.on)).containsString("Success") == true {
-            
-            // Modifie la configuration
-            Function().modavConfiguration(tf_ServerURL.text! + "\n" + String(sw_FadeIn.on) + "\n" + String(sw_FadeOut.on))
-        } else {
-            // Dans le cas contraire, garde l'ancienne URL, modifie les autres paramètres et retourne sur la page principale
-            Function().modavConfiguration(str_ConfigurationDatas[0] + "\n" + String(sw_FadeIn.on) + "\n" + String(sw_FadeOut.on))
-        }
+        Function().modavConfiguration(tf_ServerURL.text! + "\n" + String(sw_FadeIn.on) + "\n" + String(sw_FadeOut.on))
+
+    }
+    
+    // Masque le clavier lorsque l'utilisateur clique ailleur
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        self.view.endEditing(true)
     }
 }

@@ -127,6 +127,11 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         tf_Minutes.enabled = false
         tf_Seconds.enabled = false
         
+        // Défini que la valeur contenu par les zones de text s'éfface lors de leurs modification
+        tf_Houres.clearsOnInsertion = true
+        tf_Minutes.clearsOnInsertion = true
+        tf_Seconds.clearsOnInsertion = true
+        
         // Initialise la Picker View
         pv_Selection.delegate = self
         
@@ -140,11 +145,28 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         
         // Initialisation du timer pour mettre à jour les zones de text concernant la durée
         updateTimesTextFieldTimer = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: #selector(ViewController.updateTimesTextField), userInfo: nil, repeats: true)
+        
+        // Fait en sorte que la lecture continue même en sortant de l'application
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch let error as NSError {
+                print(error.localizedDescription)
+            }
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    // Masque le clavier lorsque l'utilisateur clique ailleur
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        self.view.endEditing(true)
     }
     
     func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
@@ -510,73 +532,104 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
         // Récupèration des données
         str_RecupDatas = function.getListOfAudioFiles(str_ConfigurationDatas[0])
         
-        // Préparation des variables
-        int_Categorie1Count = 0
-        int_Categorie2Count = 0
-        int_Categorie3Count = 0
-        
-        for x in str_RecupDatas {
-            // Défini dans quelle tableau les données seront entrées selon la catégorie
-            switch x.componentsSeparatedByString("-")[2] {
-            case "2":
-                // Ajout des détails dans le tableau de la catégorie correspondante
-                str_Categorie2Datas.append(x.componentsSeparatedByString("-"))
+        if str_RecupDatas[0].containsString("Connexion failed") == false {
+            // Préparation des variables
+            int_Categorie1Count = 0
+            int_Categorie2Count = 0
+            int_Categorie3Count = 0
+            
+            for x in str_RecupDatas {
+                // Défini dans quelle tableau les données seront entrées selon la catégorie
+                switch x.componentsSeparatedByString("-")[2] {
+                case "2":
+                    // Ajout des détails dans le tableau de la catégorie correspondante
+                    str_Categorie2Datas.append(x.componentsSeparatedByString("-"))
+                    
+                    // Incrémente la variable contenant la quantité de données insérées pour la catégorie actuel
+                    int_Categorie2Count += 1
+                case "3":
+                    str_Categorie3Datas.append(x.componentsSeparatedByString("-"))
+                    int_Categorie3Count += 1
+                default:
+                    str_Categorie1Datas.append(x.componentsSeparatedByString("-"))
+                    int_Categorie1Count += 1
+                }
                 
-                // Incrémente la variable contenant la quantité de données insérées pour la catégorie actuel
-                int_Categorie2Count += 1
-            case "3":
-                str_Categorie3Datas.append(x.componentsSeparatedByString("-"))
-                int_Categorie3Count += 1
-            default:
-                str_Categorie1Datas.append(x.componentsSeparatedByString("-"))
-                int_Categorie1Count += 1
+                // Rempli le tableau globale
+                str_GlobalDatas.append(x.componentsSeparatedByString("-"))
             }
             
-            // Rempli le tableau globale
-            str_GlobalDatas.append(x.componentsSeparatedByString("-"))
-        }
-        
-        // Vérifie que le bon nombre de donnée ont été rentrée
-        if str_RecupDatas.count < str_Categorie1Datas.count + str_Categorie2Datas.count + str_Categorie3Datas.count {
-            // Parcours le tableau de la catégorie 1
-            for _ in str_Categorie1Datas {
-                // Verifie que le nombre de données contenu est différent du nombre de données insérées
-                if str_Categorie1Datas.count > int_Categorie1Count {
-                    // Retire l'actuel valeur
-                    str_Categorie1Datas.removeFirst()
-                } else {
-                    // Sort de la boucle
-                    break
+            // Vérifie que le bon nombre de donnée ont été rentrée
+            if str_RecupDatas.count < str_Categorie1Datas.count + str_Categorie2Datas.count + str_Categorie3Datas.count {
+                // Parcours le tableau de la catégorie 1
+                for _ in str_Categorie1Datas {
+                    // Verifie que le nombre de données contenu est différent du nombre de données insérées
+                    if str_Categorie1Datas.count > int_Categorie1Count {
+                        // Retire l'actuel valeur
+                        str_Categorie1Datas.removeFirst()
+                    } else {
+                        // Sort de la boucle
+                        break
+                    }
+                }
+                
+                // Parcours le tableau de la catégorie 2
+                for _ in str_Categorie2Datas {
+                    if str_Categorie2Datas.count > int_Categorie2Count {
+                        str_Categorie2Datas.removeFirst()
+                    } else {
+                        break
+                    }
+                }
+                
+                // Parcours le tableau de la catégorie 3
+                for _ in str_Categorie3Datas {
+                    if str_Categorie3Datas.count > int_Categorie3Count {
+                        str_Categorie3Datas.removeFirst()
+                    } else {
+                        break
+                    }
+                }
+            
+                // Initialise le tableau selon la catégorie active
+                switch int_ActiveCategorie {
+                case 2:
+                    str_ActiveCategorieDatas = str_Categorie2Datas
+                case 3:
+                    str_ActiveCategorieDatas = str_Categorie3Datas
+                default:
+                    str_ActiveCategorieDatas = str_Categorie1Datas
                 }
             }
             
-            // Parcours le tableau de la catégorie 2
-            for _ in str_Categorie2Datas {
-                if str_Categorie2Datas.count > int_Categorie2Count {
-                    str_Categorie2Datas.removeFirst()
-                } else {
-                    break
-                }
+            // Active le bouton pour lancer la lecture
+            btn_SoundControl.enabled = true
+        } else {
+            // Récupère le code HTTP retourné
+            var str_ErrorCode = str_RecupDatas[0].componentsSeparatedByString("|")[1]
+            
+            // Retire le Optional() du code HTTP reoutrné
+            str_ErrorCode = str_ErrorCode.stringByReplacingOccurrencesOfString("Optional(", withString: "")
+            str_ErrorCode = str_ErrorCode.stringByReplacingOccurrencesOfString(")", withString: "")
+            
+            // Réinitialise le tableau de la catégorie active (première valeur nul)
+            str_ActiveCategorieDatas.removeAll()
+            
+            if str_ErrorCode == "nil" {
+                // Indique qu'aucune connexion n'est présente
+                str_ActiveCategorieDatas.append(Array(arrayLiteral: "Pas de connexion", "0"))
+            } else {
+                // Affiche l'erreur HTTP
+                str_ActiveCategorieDatas.append(Array(arrayLiteral: "Erreur " + str_ErrorCode, "0"))
             }
             
-            // Parcours le tableau de la catégorie 3
-            for _ in str_Categorie3Datas {
-                if str_Categorie3Datas.count > int_Categorie3Count {
-                    str_Categorie3Datas.removeFirst()
-                } else {
-                    break
-                }
-            }
-        }
-        
-        // Initialise le tableau selon la catégorie active
-        switch int_ActiveCategorie {
-        case 2:
-            str_ActiveCategorieDatas = str_Categorie2Datas
-        case 3:
-            str_ActiveCategorieDatas = str_Categorie3Datas
-        default:
-            str_ActiveCategorieDatas = str_Categorie1Datas
+            // Défini l'erreur comme valeur pour toutes les catégories
+            str_Categorie1Datas = str_ActiveCategorieDatas
+            str_Categorie2Datas = str_ActiveCategorieDatas
+            str_Categorie3Datas = str_ActiveCategorieDatas
+            
+            // Vérouille le bouton pour lancer la lecture
+            btn_SoundControl.enabled = false
         }
         
         // Défini si la fonction de Fade In est activée

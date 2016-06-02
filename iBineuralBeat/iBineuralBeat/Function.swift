@@ -32,10 +32,11 @@ class Function {
     /***************************************************************/
     func getConfiguration () -> [String] {
         // Récupère le chemin du fichier de configuration
-        let FilePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")
+        let documentPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
+        let filePath = documentPath[0].stringByAppendingString("/iBBConfiguration.txt")
         
         // Récupère le contenu du fichier de configuration
-        let FileContent = try? NSString(contentsOfFile: FilePath!, encoding: NSUTF8StringEncoding)
+        let FileContent = try? NSString(contentsOfFile: filePath, encoding: NSUTF8StringEncoding)
         
         // Retourne le contenu du fichier de configuration dans un tableau
         return FileContent!.componentsSeparatedByString("\n")
@@ -49,26 +50,19 @@ class Function {
     /***************************************************************/
     /* Description : Met à jours le fichier de configuration       */
     /***************************************************************/
-    /* Retour : Message de succès ou d'échec, concerne l'URL du    */
-    /*          serveur qui est testée avant d'être approuvée      */
+    /* Retour : -                                                  */
     /***************************************************************/
-    func modavConfiguration (str_Configuration: String) -> String {
-        // Vérifie que l'adresse du serveur est compatible avec l'application
-        var textTable = getListOfAudioFiles(str_Configuration.componentsSeparatedByString("\n")[0])
-        
-        if textTable[0].containsString("Connexion failed") {
-            // Indique la présence d'une valeur invalide
-            return textTable[0]
-        } else {
-            // Récupère le chemin du fichier de configuration
-            let filePath = NSBundle.mainBundle().pathForResource("iBBConfiguration", ofType: "txt")
+    func modavConfiguration (str_Configuration: String) {
+        // Récupère le chemin du fichier de configuration
+        let Path = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
+        let filePath = Path[0].stringByAppendingString("/iBBConfiguration.txt")
             
-            // Modifie le fichier de configuration avec la nouvelle configuration
-            try? str_Configuration.writeToFile(filePath!, atomically: true, encoding: NSUTF8StringEncoding)
+        // Modifie le fichier de configuration avec la nouvelle configuration
+        do {
+            try str_Configuration.writeToFile(filePath, atomically: true, encoding: NSUTF8StringEncoding)
+        } catch let error as NSError {
+            print(error.debugDescription)
         }
-        
-        // Indique le bon déroulement de l'opération
-        return "Success"
     }
     
     /***************************************************************/
@@ -107,7 +101,7 @@ class Function {
                 str_DataTable = (str_Response.componentsSeparatedByCharactersInSet(NSCharacterSet(charactersInString: "|")))
             } else {
                 // Ajoute une message d'echec
-                str_DataTable.append("Connexion failed, Status code : " + String(int_StatusCode))
+                str_DataTable.append("Connexion failed|" + String(int_StatusCode))    
             }
         }
         task.resume()

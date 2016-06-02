@@ -42,6 +42,10 @@
 			<string></string>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UILaunchImageFile</key>
 	<string>SplashScreenImage</string>
 	<key>UILaunchStoryboardName</key>
