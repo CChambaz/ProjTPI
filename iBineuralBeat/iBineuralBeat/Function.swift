@@ -54,8 +54,8 @@ class Function {
     /***************************************************************/
     func modavConfiguration (str_Configuration: String) {
         // Récupère le chemin du fichier de configuration
-        let Path = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let filePath = Path[0].stringByAppendingString("/iBBConfiguration.txt")
+        let documentPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
+        let filePath = documentPath[0].stringByAppendingString("/iBBConfiguration.txt")
             
         // Modifie le fichier de configuration avec la nouvelle configuration
         do {

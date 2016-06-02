@@ -176,6 +176,13 @@ class ViewController: UIViewController , UIPickerViewDelegate, UIPickerViewDataS
     // Défini le nombre de donnée à insérer dans le PickerView selon la catégorie sélectionnée
     func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if bool_IsSearching == false {
+            // Active ou désactive le bouton de gestion de la lecture
+            if str_ActiveCategorieDatas.count == 0 {
+                btn_SoundControl.enabled = false
+            } else {
+                btn_SoundControl.enabled = true
+            }
+            
             // Retourne le nombre de piste audio selon la catégorie
             return str_ActiveCategorieDatas.count
         } else {
